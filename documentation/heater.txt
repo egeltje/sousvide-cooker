@@ -1,0 +1,45 @@
+global temp_read
+global temp_set
+global status
+global value ( kan dit per interrupt?)
+
+read temp_read (interrupt)
+  if temp_read < temp_set: heater on else: heater off
+  set status
+  set temp_read
+  update display
+
+read key (interrupt)
+  if key up: temp_set = temp_set + value
+  if key down: temp_set = temp_set - value
+  if key left: value = value * 10
+    if value = .01: value = .1
+    underline value
+  if key right: value = value / 10
+    if value = 100: value = 10
+    underline value
+  update display
+
+timer overflow (interrupt)
+  read temp
+
+main
+  setup
+  set pump on
+  sleep
+
+              _
++--------+  _/ \_  
+|T 59.3 C| / \_/ \
+|S 60.5 C| \_/ \_/
++--------+   \_/  
+                      _
++----------------+  _/ \_  
+|[P] Tread 59.3 C| / \_/ \
+|[H] Tset  60.5 C| \_/ \_/
++----------------+   \_/  
+                          _
++--------------------+  _/ \_  
+|Pump Off Temp 59.3 C| / \_/ \
+|Heat On  Set  60.5 C| \_/ \_/
++--------------------+   \_/  
