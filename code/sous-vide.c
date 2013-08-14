@@ -30,33 +30,33 @@
 #include <stdio.h>
 #include <avr/pgmspace.h>
 #include "lcd.c"
-
-#define LEDPORT     PORTE
-#define LED_ON      6
+  
+#define LEDPORT             PORTE
+#define LED_ON              6       /* this is the LED soldered on the board */
 #define DISPLAY_FREQUENCY	((16000000 / 1024) / 10)
 //                          ((F_CPU / CPU_PRESCALER / Hz)
-#define TEMP_OFFSET 0
+#define TEMP_OFFSET         0       /* for future calibration */
 
-#define STATUS_PUMP     0
-#define STATUS_HEATER   1
-#define STATUS_TIMER    2
-#define STATUS_ADC      3
-#define STATUS_KBD      0xf0
+#define STATUS_PUMP         0       /* status bit for the pump */
+#define STATUS_HEATER       1       /* status bit for the heaC 8?ter */
+#define STATUS_TIMER        2       /* status bit for the timer */
+#define STATUS_ADC          3       /* status bit for the AD converter */
+#define STATUS_KBD          0xf0    /* the upper nibble is for storing KBD value */
 
-#define KBD_PORT        PORTB
-#define KBD             PINB
-#define BUTTON_ARROW_UP     0x04
-#define BUTTON_ARROW_RIGHT  0x01
-#define BUTTON_ARROW_DOWN   0x02
-#define BUTTON_ARROW_LEFT   0x08
-#define BUTTON_TIMER_SS     0x10
-#define BUTTON_TIMER_RST    0x20
-#define BUTTON_PUMP         0x40
+#define KBD_PORT            PORTB   /* the KBD is attached to IO Port B */
+#define KBD                 PINB
+#define BUTTON_ARROW_LEFT   0x01    /* pin B1 */
+#define BUTTON_ARROW_DOWN   0x02    /* pin B2 */
+#define BUTTON_ARROW_UP     0x04    /* pin B3 */
+#define BUTTON_ARROW_RIGHT  0x08    /* pin B4 */
+#define BUTTON_TIMER_SS     0x10    /* pin B5 */
+#define BUTTON_TIMER_RST    0x20    /* pin B6 */
+#define BUTTON_PUMP         0x40    /* pin B7 */
 
-#define OUT_PORT        PORTC
-#define OUT_DIR         DDRC
-#define OUT_PUMP        6
-#define OUT_HEATER      7
+#define OUT_PORT            PORTC   /* the output is attached to IO Port C */
+#define OUT_DIR             DDRC
+#define OUT_PUMP            6       /* pin C6 */
+#define OUT_HEATER          7       /* pin C7 */
 
 volatile uint16_t iTempRead;
 volatile uint16_t iTempSet;
@@ -74,19 +74,19 @@ int main (void) {
     uint8_t i;                          /* loop variable */
     char lcdline[LCD_DISP_LENGTH];      /* array for lcd line formatting */
     uint8_t iCursorPos = 2;             /* storing cursor position */
-    uint8_t iButton = 0;                    /* storing pressed button */
-    uint8_t iButtonOld = 0;                    /* storing pressed button */
+    uint8_t iButton = 0;                /* storing pressed button */
+    uint8_t iButtonOld = 0;             /* storing pressed button */
     
     /* setup registers */
     cli();                              /* disable interrupts */
     set_sleep_mode(SLEEP_MODE_IDLE);    /* set sleep mode */
     DDRE  = _BV(LED_ON);                /* enable pins for data output */
-    KBD_PORT = 0xff;           /* enable pull-ups for row inputs */
-    OUT_DIR = 0xff;             /* enable all pins for output */
+    KBD_PORT = 0xff;                    /* enable pull-ups for row inputs */
+    OUT_DIR = 0xff;                     /* enable all pins for output */
     TCCR1B = _BV(WGM12) |               /* CTC mode, top = OCR1A */
              _BV(CS10) | _BV(CS12);     /* 1024 prescale */
     TIMSK1 = _BV(OCIE1A);               /* enable timer1 interrupt */
-    OCR1A = DISPLAY_FREQUENCY;          /* top is calculated to be 1 second */
+    OCR1A = DISPLAY_FREQUENCY;          /* top is calculated to be 1 sec */
     ADCSRA = _BV(ADIE) |                /* enable adc interrupt */
             _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);	/* 128 prescale */
     ADMUX = _BV(REFS1) | _BV(REFS0);    /* internal 2.56V reference */
@@ -96,8 +96,8 @@ int main (void) {
 
     /* setup custom lcd characters */
     static const uint8_t cgstring[16] PROGMEM = {
-        0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00, /* char index 0 */
-        0x04, 0x0a, 0x0a, 0x0e, 0x1f, 0x1f, 0x0e, 0x00  /* char index 1 */
+        0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00, /* char 0 (pump) */
+        0x04, 0x0a, 0x0a, 0x0e, 0x1f, 0x1f, 0x0e, 0x00  /* char 1 (temp) */
     };
     lcd_command(_BV(LCD_CGRAM));
 	for (i = 0; i < 16; i++) {
@@ -105,6 +105,7 @@ int main (void) {
 	}
 	lcd_command(_BV(LCD_CGRAM));
     
+    /* set pump status to 1 */
     iStatus |= _BV(STATUS_PUMP);
     
 	/* run main program */
@@ -112,8 +113,14 @@ int main (void) {
         if (iStatus & _BV(STATUS_ADC)) {
             
             iButton = (KBD ^ 0xff);
-            if (iButton != iButtonOld) {
-                if (iButton == BUTTON_ARROW_RIGHT) { 
+            if (iButton != iButtonOld) {    /* new button pressed (debounce) */
+                /* BUTTON_ARROW_LEFT and BUTTON_ARROW_RIGHT move the cursor 
+                 * position: pos2=decimals, pos3=single digits, pos5=fraction
+                 * (pos 4 is decimal point on the display) */
+                /* BUTTON_ARROW_UP and BUTTON_ARROW_DOWN change the value of 
+                 * the number the cursor is at. There are 4 steps in a single
+                 * degree. */
+                if (iButton == BUTTON_ARROW_LEFT) {
                     if (iCursorPos == 3) {
                         iCursorPos = 2;
                     }
@@ -128,7 +135,7 @@ int main (void) {
                     if (iCursorPos == 3) {
                         if (iTempSet >= 4) iTempSet -= 4;
                     }
-                    if (iCursorPos == 5) {
+                    if (iCursorPos == 5) {  /* 
                         if (iTempSet >= 1) iTempSet -= 1;
                     }
                 }
@@ -142,8 +149,8 @@ int main (void) {
                     if (iCursorPos == 5) {
                         if (iTempSet <= 398) iTempSet += 1;
                     }
-               }
-                if (iButton == BUTTON_ARROW_LEFT) {
+                }
+                if (iButton == BUTTON_ARROW_RIGHT) {
                     if (iCursorPos == 3) {
                         iCursorPos = 5;
                     }
@@ -174,24 +181,30 @@ int main (void) {
                     }
                 }
             
-                iButtonOld = iButton;
+                iButtonOld = iButton;   /* the button has been processed */
             }
             
+            /* if pump status = 1, switch on the output else switch off */
             if (iStatus & _BV(STATUS_PUMP)) {
                 OUT_PORT |= _BV(OUT_PUMP);
             } else {
                 OUT_PORT &= ~(_BV(OUT_PUMP));
             }
             
+            /* if heater status = 1 and temp is higher than set temp, 
+             * switch off the output */
             if ((iStatus & _BV(STATUS_HEATER)) && (iTempRead > iTempSet)) {
                 OUT_PORT &= ~(_BV(OUT_HEATER));
                 iStatus &= ~(_BV(STATUS_HEATER));
             }
+            /* if heater status = 0 and temp is lower than set temp, 
+             * switch off the output */
             if (~(iStatus & _BV(STATUS_HEATER)) && (iTempRead < iTempSet)) {
                 OUT_PORT |= _BV(OUT_HEATER);
                 iStatus |= _BV(STATUS_HEATER);
             }
 
+            /* if timer status = 1, record the time */
             if (iStatus & _BV(STATUS_TIMER)) {
                 iTick++;
                 if (iTick == 10) {
@@ -211,6 +224,7 @@ int main (void) {
                 }
             }
             
+            /* update the display */
             sprintf(lcdline, "Ts%02d.%02d  Tr%02d.%02d",
                 (iTempSet >> 2),
                 ((iTempSet & 0x0003) * 25),
@@ -233,6 +247,7 @@ int main (void) {
             
             lcd_gotoxy(iCursorPos, 0);
 
+            /* set the ADC status back to 0 */
             iStatus &= ~_BV(STATUS_ADC);
         }
     }
@@ -256,7 +271,7 @@ ISR(TIMER1_COMPA_vect) {
 ISR(ADC_vect) {
     LEDPORT &= ~(_BV(LED_ON));      /* set LED off */
     iTempRead = ADC - TEMP_OFFSET;  /* read ADC */
-    iStatus |= _BV(STATUS_ADC);     /* set ADC reaady status */
+    iStatus |= _BV(STATUS_ADC);     /* set ADC status to 1 */
     ADCSRA &= ~(_BV(ADEN));         /* disable ADC */
 }
 
