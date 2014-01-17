@@ -96,8 +96,8 @@ int main (void) {
 
     /* setup custom lcd characters */
     static const uint8_t cgstring[16] PROGMEM = {
-        0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00, /* char 0 (pump) */
-        0x04, 0x0a, 0x0a, 0x0e, 0x1f, 0x1f, 0x0e, 0x00  /* char 1 (temp) */
+        0x04, 0x0a, 0x0a, 0x0e, 0x1f, 0x1f, 0x0e, 0x00,  /* char 0 (temp) */
+        0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00 /* char 1 (pump) */
     };
     lcd_command(_BV(LCD_CGRAM));
 	for (i = 0; i < 16; i++) {
@@ -135,7 +135,7 @@ int main (void) {
                     if (iCursorPos == 3) {
                         if (iTempSet >= 4) iTempSet -= 4;
                     }
-                    if (iCursorPos == 5) {  /* 
+                    if (iCursorPos == 5) {
                         if (iTempSet >= 1) iTempSet -= 1;
                     }
                 }
@@ -192,19 +192,19 @@ int main (void) {
             }
             
             /* if heater status = 1 and temp is higher than set temp, 
-             * switch off the output */
+             * switch off the heater */
             if ((iStatus & _BV(STATUS_HEATER)) && (iTempRead > iTempSet)) {
                 OUT_PORT &= ~(_BV(OUT_HEATER));
                 iStatus &= ~(_BV(STATUS_HEATER));
             }
             /* if heater status = 0 and temp is lower than set temp, 
-             * switch off the output */
+             * switch on the heater */
             if (~(iStatus & _BV(STATUS_HEATER)) && (iTempRead < iTempSet)) {
                 OUT_PORT |= _BV(OUT_HEATER);
                 iStatus |= _BV(STATUS_HEATER);
             }
 
-            /* if timer status = 1, record the time */
+            /* if timer status = 1, record the elapsed time */
             if (iStatus & _BV(STATUS_TIMER)) {
                 iTick++;
                 if (iTick == 10) {
@@ -217,7 +217,7 @@ int main (void) {
                             iMin = 0;
                             iHour++;
                             if (iHour > 99) {
-                                iHour = 99;
+                                iHour = 0;
                             }
                         }
                     }
@@ -237,11 +237,11 @@ int main (void) {
                 iSec);
             lcd_gotoxy(0, 1); lcd_puts(lcdline);
 
-            if (iStatus & _BV(STATUS_PUMP)) {
+            if (iStatus & _BV(STATUS_HEATER)) {
                 lcd_gotoxy(1, 1); lcd_putc(0x00);
             };
         
-            if (iStatus & _BV(STATUS_HEATER)) {
+            if (iStatus & _BV(STATUS_PUMP)) {
                 lcd_gotoxy(14, 1); lcd_putc(0x01);
             };
             
