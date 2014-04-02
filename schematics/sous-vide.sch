@@ -10768,10 +10768,6 @@ Cermet, abgedichtet nach IP67</description>
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="GND2" library="supply1" deviceset="GND" device=""/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
-<part name="GND4" library="supply1" deviceset="GND" device=""/>
-<part name="GND5" library="supply1" deviceset="GND" device=""/>
-<part name="GND6" library="supply1" deviceset="GND" device=""/>
-<part name="GND7" library="supply1" deviceset="GND" device=""/>
 <part name="GND8" library="supply1" deviceset="GND" device=""/>
 <part name="JP7" library="pinhead" deviceset="PINHD-1X2" device="" value="pump"/>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
@@ -10801,6 +10797,10 @@ Cermet, abgedichtet nach IP67</description>
 <part name="H2" library="holes" deviceset="MOUNT-HOLE" device="3.0"/>
 <part name="H3" library="holes" deviceset="MOUNT-HOLE" device="3.0"/>
 <part name="H4" library="holes" deviceset="MOUNT-HOLE" device="3.0"/>
+<part name="GND4" library="supply1" deviceset="GND" device=""/>
+<part name="GND5" library="supply1" deviceset="GND" device=""/>
+<part name="GND6" library="supply1" deviceset="GND" device=""/>
+<part name="GND7" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -10829,10 +10829,6 @@ Cermet, abgedichtet nach IP67</description>
 <instance part="GND1" gate="1" x="190.5" y="53.34" rot="R180"/>
 <instance part="GND2" gate="1" x="190.5" y="38.1" rot="R180"/>
 <instance part="GND3" gate="1" x="190.5" y="22.86" rot="R180"/>
-<instance part="GND4" gate="1" x="149.86" y="53.34" rot="R180"/>
-<instance part="GND5" gate="1" x="160.02" y="38.1" rot="R180"/>
-<instance part="GND6" gate="1" x="149.86" y="22.86" rot="R180"/>
-<instance part="GND7" gate="1" x="139.7" y="38.1" rot="R180"/>
 <instance part="GND8" gate="1" x="15.24" y="63.5"/>
 <instance part="JP7" gate="G$1" x="111.76" y="55.88"/>
 <instance part="GND9" gate="1" x="106.68" y="50.8"/>
@@ -10862,6 +10858,10 @@ Cermet, abgedichtet nach IP67</description>
 <instance part="H2" gate="G$1" x="20.32" y="124.46"/>
 <instance part="H3" gate="G$1" x="20.32" y="116.84"/>
 <instance part="H4" gate="G$1" x="22.86" y="109.22"/>
+<instance part="GND4" gate="1" x="149.86" y="38.1"/>
+<instance part="GND5" gate="1" x="139.7" y="22.86"/>
+<instance part="GND6" gate="1" x="160.02" y="22.86"/>
+<instance part="GND7" gate="1" x="149.86" y="7.62"/>
 </instances>
 <busses>
 <bus name="DISPLAY[0..7]">
@@ -10921,34 +10921,6 @@ Cermet, abgedichtet nach IP67</description>
 <junction x="190.5" y="20.32"/>
 <pinref part="S3" gate="1" pin="S@1"/>
 <wire x1="193.04" y1="20.32" x2="190.5" y2="20.32" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="S4" gate="1" pin="S"/>
-<pinref part="GND4" gate="1" pin="GND"/>
-<pinref part="S4" gate="1" pin="S@1"/>
-<wire x1="152.4" y1="50.8" x2="149.86" y2="50.8" width="0.1524" layer="91"/>
-<junction x="149.86" y="50.8"/>
-</segment>
-<segment>
-<pinref part="S5" gate="1" pin="S"/>
-<pinref part="GND5" gate="1" pin="GND"/>
-<junction x="160.02" y="35.56"/>
-<pinref part="S5" gate="1" pin="S@1"/>
-<wire x1="160.02" y1="35.56" x2="162.56" y2="35.56" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="S6" gate="1" pin="S"/>
-<pinref part="GND6" gate="1" pin="GND"/>
-<junction x="149.86" y="20.32"/>
-<pinref part="S6" gate="1" pin="S@1"/>
-<wire x1="149.86" y1="20.32" x2="152.4" y2="20.32" width="0.1524" layer="91"/>
-</segment>
-<segment>
-<pinref part="S7" gate="1" pin="S"/>
-<pinref part="GND7" gate="1" pin="GND"/>
-<junction x="139.7" y="35.56"/>
-<pinref part="S7" gate="1" pin="S@1"/>
-<wire x1="139.7" y1="35.56" x2="142.24" y2="35.56" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="IC1" gate="G$1" pin="GND@1"/>
@@ -11013,6 +10985,34 @@ Cermet, abgedichtet nach IP67</description>
 <pinref part="JP8" gate="A" pin="16"/>
 <pinref part="GND20" gate="1" pin="GND"/>
 <wire x1="99.06" y1="12.7" x2="71.12" y2="12.7" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="S4" gate="1" pin="P"/>
+<pinref part="GND4" gate="1" pin="GND"/>
+<pinref part="S4" gate="1" pin="P@1"/>
+<wire x1="152.4" y1="40.64" x2="149.86" y2="40.64" width="0.1524" layer="91"/>
+<junction x="149.86" y="40.64"/>
+</segment>
+<segment>
+<pinref part="S7" gate="1" pin="P"/>
+<pinref part="GND5" gate="1" pin="GND"/>
+<pinref part="S7" gate="1" pin="P@1"/>
+<wire x1="142.24" y1="25.4" x2="139.7" y2="25.4" width="0.1524" layer="91"/>
+<junction x="139.7" y="25.4"/>
+</segment>
+<segment>
+<pinref part="S5" gate="1" pin="P"/>
+<pinref part="GND6" gate="1" pin="GND"/>
+<pinref part="S5" gate="1" pin="P@1"/>
+<wire x1="162.56" y1="25.4" x2="160.02" y2="25.4" width="0.1524" layer="91"/>
+<junction x="160.02" y="25.4"/>
+</segment>
+<segment>
+<pinref part="S6" gate="1" pin="P"/>
+<pinref part="GND7" gate="1" pin="GND"/>
+<pinref part="S6" gate="1" pin="P@1"/>
+<wire x1="152.4" y1="10.16" x2="149.86" y2="10.16" width="0.1524" layer="91"/>
+<junction x="149.86" y="10.16"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -11161,12 +11161,14 @@ Cermet, abgedichtet nach IP67</description>
 <wire x1="60.96" y1="20.32" x2="58.42" y2="22.86" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="147.32" y1="5.08" x2="149.86" y2="7.62" width="0.1524" layer="91"/>
-<pinref part="S6" gate="1" pin="P"/>
-<wire x1="149.86" y1="7.62" x2="149.86" y2="10.16" width="0.1524" layer="91"/>
-<pinref part="S6" gate="1" pin="P@1"/>
-<wire x1="152.4" y1="10.16" x2="149.86" y2="10.16" width="0.1524" layer="91"/>
-<junction x="149.86" y="10.16"/>
+<wire x1="142.24" y1="5.08" x2="144.78" y2="7.62" width="0.1524" layer="91"/>
+<wire x1="144.78" y1="7.62" x2="144.78" y2="17.78" width="0.1524" layer="91"/>
+<wire x1="144.78" y1="17.78" x2="147.32" y2="20.32" width="0.1524" layer="91"/>
+<pinref part="S6" gate="1" pin="S@1"/>
+<wire x1="147.32" y1="20.32" x2="149.86" y2="20.32" width="0.1524" layer="91"/>
+<pinref part="S6" gate="1" pin="S"/>
+<junction x="149.86" y="20.32"/>
+<wire x1="149.86" y1="20.32" x2="152.4" y2="20.32" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="BUTTON6" class="0">
@@ -11175,12 +11177,14 @@ Cermet, abgedichtet nach IP67</description>
 <wire x1="60.96" y1="22.86" x2="58.42" y2="25.4" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="137.16" y1="5.08" x2="139.7" y2="7.62" width="0.1524" layer="91"/>
-<pinref part="S7" gate="1" pin="P"/>
-<wire x1="139.7" y1="7.62" x2="139.7" y2="25.4" width="0.1524" layer="91"/>
-<pinref part="S7" gate="1" pin="P@1"/>
-<wire x1="139.7" y1="25.4" x2="142.24" y2="25.4" width="0.1524" layer="91"/>
-<junction x="139.7" y="25.4"/>
+<wire x1="132.08" y1="5.08" x2="134.62" y2="7.62" width="0.1524" layer="91"/>
+<wire x1="134.62" y1="7.62" x2="134.62" y2="33.02" width="0.1524" layer="91"/>
+<wire x1="134.62" y1="33.02" x2="137.16" y2="35.56" width="0.1524" layer="91"/>
+<pinref part="S7" gate="1" pin="S@1"/>
+<wire x1="137.16" y1="35.56" x2="139.7" y2="35.56" width="0.1524" layer="91"/>
+<pinref part="S7" gate="1" pin="S"/>
+<junction x="139.7" y="35.56"/>
+<wire x1="139.7" y1="35.56" x2="142.24" y2="35.56" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="BUTTON7" class="0">
@@ -11209,12 +11213,14 @@ Cermet, abgedichtet nach IP67</description>
 <wire x1="60.96" y1="17.78" x2="58.42" y2="20.32" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="157.48" y1="5.08" x2="160.02" y2="7.62" width="0.1524" layer="91"/>
-<wire x1="160.02" y1="7.62" x2="160.02" y2="25.4" width="0.1524" layer="91"/>
-<pinref part="S5" gate="1" pin="P@1"/>
-<pinref part="S5" gate="1" pin="P"/>
-<junction x="160.02" y="25.4"/>
-<wire x1="160.02" y1="25.4" x2="162.56" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="152.4" y1="5.08" x2="154.94" y2="7.62" width="0.1524" layer="91"/>
+<wire x1="154.94" y1="7.62" x2="154.94" y2="33.02" width="0.1524" layer="91"/>
+<wire x1="154.94" y1="33.02" x2="157.48" y2="35.56" width="0.1524" layer="91"/>
+<pinref part="S5" gate="1" pin="S@1"/>
+<wire x1="157.48" y1="35.56" x2="160.02" y2="35.56" width="0.1524" layer="91"/>
+<pinref part="S5" gate="1" pin="S"/>
+<junction x="160.02" y="35.56"/>
+<wire x1="160.02" y1="35.56" x2="162.56" y2="35.56" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="BUTTON3" class="0">
@@ -11223,14 +11229,14 @@ Cermet, abgedichtet nach IP67</description>
 <wire x1="60.96" y1="15.24" x2="58.42" y2="17.78" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="129.54" y1="38.1" x2="132.08" y2="40.64" width="0.1524" layer="91"/>
-<pinref part="S4" gate="1" pin="P"/>
-<wire x1="132.08" y1="40.64" x2="149.86" y2="40.64" width="0.1524" layer="91"/>
-<pinref part="S4" gate="1" pin="P@1"/>
-<wire x1="152.4" y1="40.64" x2="149.86" y2="40.64" width="0.1524" layer="91"/>
-<junction x="149.86" y="40.64"/>
-<wire x1="129.54" y1="38.1" x2="129.54" y2="7.62" width="0.1524" layer="91"/>
+<wire x1="129.54" y1="48.26" x2="129.54" y2="7.62" width="0.1524" layer="91"/>
 <wire x1="129.54" y1="7.62" x2="127" y2="5.08" width="0.1524" layer="91"/>
+<pinref part="S4" gate="1" pin="S@1"/>
+<pinref part="S4" gate="1" pin="S"/>
+<wire x1="152.4" y1="50.8" x2="149.86" y2="50.8" width="0.1524" layer="91"/>
+<wire x1="149.86" y1="50.8" x2="132.08" y2="50.8" width="0.1524" layer="91"/>
+<wire x1="132.08" y1="50.8" x2="129.54" y2="48.26" width="0.1524" layer="91"/>
+<junction x="149.86" y="50.8"/>
 </segment>
 </net>
 <net name="BUTTON1" class="0">
