@@ -13,7 +13,8 @@ FILE       = sous-vide
 DEVICE     = atmega32
 CLOCK      = 1000000
 PROGRAMMER = -c dragon_isp -P usb
-FUSES      = -U lfuse:w:0xe1:m -U hfuse:w:0x99:m
+FUSES      = -U lfuse:w:0xe1:m -U hfuse:w:0xd9:m
+# fuses set to disable jtag
 
 # Typically, no changes are required beyond this point.
 
