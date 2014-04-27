@@ -26,14 +26,11 @@
  */
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/sleep.h>
 #include <stdio.h>
 #include <avr/pgmspace.h>
-#include "lcd.c"
-  
-#define LEDPORT             PORTE
-#define LED_ON              6       /* this is the LED soldered on the board */
-#define DISPLAY_FREQUENCY	((16000000 / 1024) / 10)
+#include "lcd.h"
+
+#define SAMPLE_FREQUENCY	((1000000 / 1024) / 10)
 //                          ((F_CPU / CPU_PRESCALER / Hz)
 #define TEMP_OFFSET         0       /* for future calibration */
 
@@ -43,20 +40,27 @@
 #define STATUS_ADC          3       /* status bit for the AD converter */
 #define STATUS_KBD          0xf0    /* the upper nibble is for storing KBD value */
 
-#define KBD_PORT            PORTB   /* the KBD is attached to IO Port B */
-#define KBD                 PINB
-#define BUTTON_ARROW_LEFT   0x01    /* pin B1 */
-#define BUTTON_ARROW_DOWN   0x02    /* pin B2 */
-#define BUTTON_ARROW_UP     0x04    /* pin B3 */
-#define BUTTON_ARROW_RIGHT  0x08    /* pin B4 */
-#define BUTTON_TIMER_SS     0x10    /* pin B5 */
-#define BUTTON_TIMER_RST    0x20    /* pin B6 */
-#define BUTTON_PUMP         0x40    /* pin B7 */
+#define KBD_PORT            PORTD   /* the KBD is attached to IO Port D */
+#define KBD_DIR             DDRD
+#define KBD                 PIND
+#define BUTTON_ARROW_LEFT   0x01    /* pin D1 */
+#define BUTTON_ARROW_DOWN   0x02    /* pin D2 */
+#define BUTTON_ARROW_UP     0x04    /* pin D3 */
+#define BUTTON_ARROW_RIGHT  0x08    /* pin D4 */
+#define BUTTON_TIMER_SS     0x10    /* pin D5 */
+#define BUTTON_TIMER_RST    0x20    /* pin D6 */
+#define BUTTON_PUMP         0x40    /* pin D7 */
 
-#define OUT_PORT            PORTC   /* the output is attached to IO Port C */
-#define OUT_DIR             DDRC
-#define OUT_PUMP            6       /* pin C6 */
-#define OUT_HEATER          7       /* pin C7 */
+#define OUT_PORT            PORTB   /* the output is attached to IO Port C */
+#define OUT_DIR             DDRB
+#define OUT_PUMP            0       /* pin B0 */
+#define OUT_HEATER          1       /* pin B1 */
+#define OUT_AUX0            2       /* pin B2 */
+#define OUT_AUX1            3       /* pin B3 */
+#define OUT_LED1            4       /* pin B4 */
+#define OUT_LED2            5       /* pin B5 */
+#define OUT_LED3            6       /* pin B6 */
+
 
 volatile uint16_t iTempRead;
 volatile uint16_t iTempSet;
@@ -76,22 +80,21 @@ int main (void) {
     uint8_t iCursorPos = 2;             /* storing cursor position */
     uint8_t iButton = 0;                /* storing pressed button */
     uint8_t iButtonOld = 0;             /* storing pressed button */
-    
+
+    lcd_init(LCD_DISP_ON_CURSOR);       /* enable display */
+
     /* setup registers */
     cli();                              /* disable interrupts */
-    set_sleep_mode(SLEEP_MODE_IDLE);    /* set sleep mode */
-    DDRE  = _BV(LED_ON);                /* enable pins for data output */
     KBD_PORT = 0xff;                    /* enable pull-ups for row inputs */
     OUT_DIR = 0xff;                     /* enable all pins for output */
     TCCR1B = _BV(WGM12) |               /* CTC mode, top = OCR1A */
              _BV(CS10) | _BV(CS12);     /* 1024 prescale */
-    TIMSK1 = _BV(OCIE1A);               /* enable timer1 interrupt */
-    OCR1A = DISPLAY_FREQUENCY;          /* top is calculated to be 1 sec */
+    TIMSK = _BV(OCIE1A);                /* enable timer1 interrupt */
+    OCR1A = SAMPLE_FREQUENCY;           /* top is calculated to be 1 sec */
     ADCSRA = _BV(ADIE) |                /* enable adc interrupt */
             _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);	/* 128 prescale */
     ADMUX = _BV(REFS1) | _BV(REFS0);    /* internal 2.56V reference */
     ACSR  = _BV(ACD);                   /* disable analog comparator */
-    lcd_init(LCD_DISP_ON_CURSOR);       /* enable display */
     sei();                              /* enable interrupts */
 
     /* setup custom lcd characters */
@@ -260,7 +263,7 @@ int main (void) {
  ****************************************************************************/
 ISR(TIMER1_COMPA_vect) {
     ADCSRA |= _BV(ADEN);            /* enable ADC */
-    LEDPORT |= _BV(LED_ON);         /* set LED on */
+    OUT_PORT |= _BV(OUT_LED3);      /* set LED on */
     ADCSRA |= _BV(ADSC);            /* start capture */
 }
 
@@ -269,7 +272,7 @@ ISR(TIMER1_COMPA_vect) {
  occurs when analog conversion is completed
  ****************************************************************************/
 ISR(ADC_vect) {
-    LEDPORT &= ~(_BV(LED_ON));      /* set LED off */
+    OUT_PORT &= ~(_BV(OUT_LED3));   /* set LED off */
     iTempRead = ADC - TEMP_OFFSET;  /* read ADC */
     iStatus |= _BV(STATUS_ADC);     /* set ADC status to 1 */
     ADCSRA &= ~(_BV(ADEN));         /* disable ADC */

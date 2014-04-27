@@ -10,14 +10,14 @@
 # FUSES ........ Parameters for avrdude to flash the fuses appropriately.
 
 FILE       = sous-vide
-DEVICE     = atmega32u4
-CLOCK      = 16000000
-PROGRAMMER = -c avr109 -P `ls /dev/tty.usb*`
-FUSES      = 
+DEVICE     = atmega32
+CLOCK      = 1000000
+PROGRAMMER = -c dragon_isp -P usb
+FUSES      = -U lfuse:w:0xe1:m -U hfuse:w:0x99:m
 
 # Typically, no changes are required beyond this point.
 
-OBJECTS    = $(FILE).o
+OBJECTS    = $(FILE).o lcd.o
 
 AVRDUDE = avrdude $(PROGRAMMER) -p $(DEVICE) -x devcode=0x57
 COMPILE = avr-gcc -Wall -Os -DF_CPU=$(CLOCK) -mmcu=$(DEVICE) -I./
@@ -69,4 +69,4 @@ disasm:	$(FILE).elf
 	avr-objdump -d $(FILE).elf
 
 cpp:
-	$(COMPILE) -E $(FILE).c
+	$(COMPILE) -E $(FILE).c lcd.c

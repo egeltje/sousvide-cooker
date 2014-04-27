@@ -10870,7 +10870,7 @@ Cermet, abgedichtet nach IP67</description>
 <wire x1="60.96" y1="53.34" x2="63.5" y2="55.88" width="0.762" layer="92"/>
 <wire x1="63.5" y1="55.88" x2="88.9" y2="55.88" width="0.762" layer="92"/>
 <wire x1="88.9" y1="55.88" x2="91.44" y2="53.34" width="0.762" layer="92"/>
-<wire x1="91.44" y1="53.34" x2="91.44" y2="30.48" width="0.762" layer="92"/>
+<wire x1="91.44" y1="53.34" x2="91.44" y2="20.32" width="0.762" layer="92"/>
 </segment>
 </bus>
 <bus name="BUTTON[0..7]">
@@ -11117,9 +11117,9 @@ Cermet, abgedichtet nach IP67</description>
 <wire x1="60.96" y1="45.72" x2="58.42" y2="43.18" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="91.44" y1="38.1" x2="93.98" y2="35.56" width="0.1524" layer="91"/>
-<pinref part="JP8" gate="A" pin="7"/>
-<wire x1="93.98" y1="35.56" x2="99.06" y2="35.56" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="27.94" x2="93.98" y2="25.4" width="0.1524" layer="91"/>
+<pinref part="JP8" gate="A" pin="11"/>
+<wire x1="93.98" y1="25.4" x2="99.06" y2="25.4" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="DISPLAY5" class="0">
@@ -11128,9 +11128,9 @@ Cermet, abgedichtet nach IP67</description>
 <wire x1="60.96" y1="48.26" x2="58.42" y2="45.72" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="91.44" y1="35.56" x2="93.98" y2="33.02" width="0.1524" layer="91"/>
-<pinref part="JP8" gate="A" pin="8"/>
-<wire x1="93.98" y1="33.02" x2="99.06" y2="33.02" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="25.4" x2="93.98" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="JP8" gate="A" pin="12"/>
+<wire x1="93.98" y1="22.86" x2="99.06" y2="22.86" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="DISPLAY6" class="0">
@@ -11139,9 +11139,9 @@ Cermet, abgedichtet nach IP67</description>
 <wire x1="60.96" y1="50.8" x2="58.42" y2="48.26" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="91.44" y1="33.02" x2="93.98" y2="30.48" width="0.1524" layer="91"/>
-<pinref part="JP8" gate="A" pin="9"/>
-<wire x1="93.98" y1="30.48" x2="99.06" y2="30.48" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="22.86" x2="93.98" y2="20.32" width="0.1524" layer="91"/>
+<pinref part="JP8" gate="A" pin="13"/>
+<wire x1="93.98" y1="20.32" x2="99.06" y2="20.32" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="DISPLAY7" class="0">
@@ -11150,9 +11150,9 @@ Cermet, abgedichtet nach IP67</description>
 <wire x1="60.96" y1="53.34" x2="58.42" y2="50.8" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<wire x1="91.44" y1="30.48" x2="93.98" y2="27.94" width="0.1524" layer="91"/>
-<pinref part="JP8" gate="A" pin="10"/>
-<wire x1="93.98" y1="27.94" x2="99.06" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="20.32" x2="93.98" y2="17.78" width="0.1524" layer="91"/>
+<pinref part="JP8" gate="A" pin="14"/>
+<wire x1="93.98" y1="17.78" x2="99.06" y2="17.78" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="BUTTON5" class="0">
