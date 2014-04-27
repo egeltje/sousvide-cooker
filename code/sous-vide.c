@@ -43,15 +43,15 @@
 #define KBD_PORT            PORTD   /* the KBD is attached to IO Port D */
 #define KBD_DIR             DDRD
 #define KBD                 PIND
-#define BUTTON_ARROW_LEFT   0x01    /* pin D1 */
-#define BUTTON_ARROW_DOWN   0x02    /* pin D2 */
-#define BUTTON_ARROW_UP     0x04    /* pin D3 */
-#define BUTTON_ARROW_RIGHT  0x08    /* pin D4 */
-#define BUTTON_TIMER_SS     0x10    /* pin D5 */
-#define BUTTON_TIMER_RST    0x20    /* pin D6 */
-#define BUTTON_PUMP         0x40    /* pin D7 */
+#define BUTTON_TIMER_SS     0x01    /* pin D0 */
+#define BUTTON_TIMER_RST    0x02    /* pin D1 */
+#define BUTTON_PUMP         0x04    /* pin D2 */
+#define BUTTON_ARROW_UP     0x08    /* pin D3 */
+#define BUTTON_ARROW_RIGHT  0x10    /* pin D4 */
+#define BUTTON_ARROW_DOWN   0x20    /* pin D5 */
+#define BUTTON_ARROW_LEFT   0x40    /* pin D6 */
 
-#define OUT_PORT            PORTB   /* the output is attached to IO Port C */
+#define OUT_PORT            PORTB   /* the output is attached to IO Port B */
 #define OUT_DIR             DDRB
 #define OUT_PUMP            0       /* pin B0 */
 #define OUT_HEATER          1       /* pin B1 */
@@ -75,13 +75,10 @@ volatile uint8_t iStatus;
  ****************************************************************************/
 int main (void) {
     /* declare variables */
-    uint8_t i;                          /* loop variable */
     char lcdline[LCD_DISP_LENGTH];      /* array for lcd line formatting */
     uint8_t iCursorPos = 2;             /* storing cursor position */
     uint8_t iButton = 0;                /* storing pressed button */
     uint8_t iButtonOld = 0;             /* storing pressed button */
-
-    lcd_init(LCD_DISP_ON_CURSOR);       /* enable display */
 
     /* setup registers */
     cli();                              /* disable interrupts */
@@ -97,14 +94,17 @@ int main (void) {
     ACSR  = _BV(ACD);                   /* disable analog comparator */
     sei();                              /* enable interrupts */
 
-    /* setup custom lcd characters */
+    lcd_init(LCD_DISP_ON_CURSOR);       /* enable display */
+
+   /* setup custom lcd characters */
     static const uint8_t cgstring[16] PROGMEM = {
         0x04, 0x0a, 0x0a, 0x0e, 0x1f, 0x1f, 0x0e, 0x00,  /* char 0 (temp) */
         0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00 /* char 1 (pump) */
     };
     lcd_command(_BV(LCD_CGRAM));
+    uint8_t i;                          /* loop variable */
 	for (i = 0; i < 16; i++) {
-        lcd_data(pgm_read_byte(&cgstring[i]));
+       lcd_data(pgm_read_byte(&cgstring[i]));
 	}
 	lcd_command(_BV(LCD_CGRAM));
     
@@ -189,9 +189,11 @@ int main (void) {
             
             /* if pump status = 1, switch on the output else switch off */
             if (iStatus & _BV(STATUS_PUMP)) {
-                OUT_PORT |= _BV(OUT_PUMP);
+                OUT_PORT |= _BV(OUT_PUMP);	/* turn off pump */
+                OUT_PORT &= ~(_BV(OUT_LED3));	/* turn on led as warning */
             } else {
-                OUT_PORT &= ~(_BV(OUT_PUMP));
+                OUT_PORT &= ~(_BV(OUT_PUMP));	/* turn on pump */
+                OUT_PORT |= _BV(OUT_LED3);	/* turn off led */
             }
             
             /* if heater status = 1 and temp is higher than set temp, 
@@ -209,6 +211,7 @@ int main (void) {
 
             /* if timer status = 1, record the elapsed time */
             if (iStatus & _BV(STATUS_TIMER)) {
+    		OUT_PORT |= _BV(OUT_LED1);	/* turn on led as warning */
                 iTick++;
                 if (iTick == 10) {
                     iTick = 0;
@@ -225,7 +228,9 @@ int main (void) {
                         }
                     }
                 }
-            }
+	    } else {
+		OUT_PORT &= ~(_BV(OUT_LED1));	
+    	    }
             
             /* update the display */
             sprintf(lcdline, "Ts%02d.%02d  Tr%02d.%02d",
@@ -263,7 +268,7 @@ int main (void) {
  ****************************************************************************/
 ISR(TIMER1_COMPA_vect) {
     ADCSRA |= _BV(ADEN);            /* enable ADC */
-    OUT_PORT |= _BV(OUT_LED3);      /* set LED on */
+    OUT_PORT |= _BV(OUT_LED2);      /* set LED on */
     ADCSRA |= _BV(ADSC);            /* start capture */
 }
 
@@ -272,7 +277,7 @@ ISR(TIMER1_COMPA_vect) {
  occurs when analog conversion is completed
  ****************************************************************************/
 ISR(ADC_vect) {
-    OUT_PORT &= ~(_BV(OUT_LED3));   /* set LED off */
+    OUT_PORT &= ~(_BV(OUT_LED2));   /* set LED off */
     iTempRead = ADC - TEMP_OFFSET;  /* read ADC */
     iStatus |= _BV(STATUS_ADC);     /* set ADC status to 1 */
     ADCSRA &= ~(_BV(ADEN));         /* disable ADC */
