@@ -114,7 +114,13 @@ int main (void) {
 	/* run main program */
     while (1) {
         if (iStatus & _BV(STATUS_ADC)) {
-            
+            iTick++;
+            if (iTick==10) {
+                iTick = 0;
+                iTemp = iTempRead / 10;
+                iTempRead = 0;
+            }
+
             iButton = (KBD ^ 0xff);
             if (iButton != iButtonOld) {    /* new button pressed (debounce) */
                 /* BUTTON_ARROW_LEFT and BUTTON_ARROW_RIGHT move the cursor 
@@ -198,23 +204,22 @@ int main (void) {
             
             /* if heater status = 1 and temp is higher than set temp, 
              * switch off the heater */
-            if ((iStatus & _BV(STATUS_HEATER)) && (iTempRead > iTempSet)) {
+            if ((iStatus & _BV(STATUS_HEATER)) && (iTemp > iTempSet)) {
                 OUT_PORT &= ~(_BV(OUT_HEATER));
                 iStatus &= ~(_BV(STATUS_HEATER));
             }
             /* if heater status = 0 and temp is lower than set temp, 
              * switch on the heater */
-            if (~(iStatus & _BV(STATUS_HEATER)) && (iTempRead < iTempSet)) {
+            if (~(iStatus & _BV(STATUS_HEATER)) && (iTemp < iTempSet)) {
                 OUT_PORT |= _BV(OUT_HEATER);
                 iStatus |= _BV(STATUS_HEATER);
             }
 
             /* if timer status = 1, record the elapsed time */
             if (iStatus & _BV(STATUS_TIMER)) {
-    		OUT_PORT |= _BV(OUT_LED1);	/* turn on led as warning */
-                iTick++;
-                if (iTick == 10) {
-                    iTick = 0;
+                OUT_PORT |= _BV(OUT_LED1);	/* turn on led as warning */
+                /* if 10 ticks are passed (iTick reset to 0) 1 has second passed */
+                if (iTick == 0) {
                     iSec++;
                     if (iSec > 59) {
                         iSec = 0;
@@ -228,8 +233,8 @@ int main (void) {
                         }
                     }
                 }
-	    } else {
-		OUT_PORT &= ~(_BV(OUT_LED1));	
+            } else {
+		        OUT_PORT &= ~(_BV(OUT_LED1));
     	    }
             
             /* update the display */
@@ -278,7 +283,7 @@ ISR(TIMER1_COMPA_vect) {
  ****************************************************************************/
 ISR(ADC_vect) {
     OUT_PORT &= ~(_BV(OUT_LED2));   /* set LED off */
-    iTempRead = ADC - TEMP_OFFSET;  /* read ADC */
+    iTempRead += ADC - TEMP_OFFSET; /* read ADC */
     iStatus |= _BV(STATUS_ADC);     /* set ADC status to 1 */
     ADCSRA &= ~(_BV(ADEN));         /* disable ADC */
 }
