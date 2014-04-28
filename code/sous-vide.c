@@ -62,6 +62,7 @@
 #define OUT_LED3            6       /* pin B6 */
 
 
+volatile uint16_t iTemp;
 volatile uint16_t iTempRead;
 volatile uint16_t iTempSet;
 volatile uint8_t iHour;
