@@ -69,25 +69,28 @@ int main (void) {
     lcd_init(LCD_DISP_ON_CURSOR);       // enable display 
 
     // setup custom lcd characters
-    static const uint8_t cgstring[40] PROGMEM = {
+    static const uint8_t cgstring[64] PROGMEM = {
         0x04, 0x0a, 0x0a, 0x0e, 0x1f, 0x1f, 0x0e, 0x00,  // char0 (temp)
         0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00,  // char1 (pump)
         0x00, 0x00, 0x01, 0x02, 0x04, 0x18, 0x18, 0x00,  // char2 (hedgehog1)
         0x11, 0x02, 0x18, 0x19, 0x02, 0x08, 0x19, 0x00,  // char3 (hedgehog2)
-        0x08, 0x12, 0x00, 0x09, 0x12, 0x00, 0x09, 0x00   // char4 (hedgehog3)
+        0x08, 0x12, 0x00, 0x09, 0x12, 0x00, 0x09, 0x00,  // char4 (hedgehog3)
+        0x02, 0x09, 0x00, 0x12, 0x09, 0x00, 0x12, 0x00,
+        0x11, 0x08, 0x03, 0x13, 0x08, 0x02, 0x03, 0x00,
+        0x00, 0x00, 0x10, 0x08, 0x04, 0x03, 0x03, 0x00
     };
     // char0 char1 char2 char3 char4 char5 char6 char7
     // 12345 12345 12345 12345 12345 12345 12345 12345
     //
-    //   x               x   x  x
-    //  x x   xxxx          x  x  x
-    //  x x  x  x      x xx
-    //  xxx  xxx x    x  xx  x  x  x
-    // xxxxx x   x   x      x  x  x
-    // xxxxx  xxx  xx     x
-    //  xxx  xxxxx xx    xx  x  x  x
+    //   x               x   x  x       x  x   x
+    //  x x   xxxx          x  x  x   x  x  x
+    //  x x  x  x      x xx                   xx x
+    //  xxx  xxx x    x  xx  x  x  x x  x  x  xx  x
+    // xxxxx x   x   x      x  x  x   x  x  x      x
+    // xxxxx  xxx  xx     x                   x     xx
+    //  xxx  xxxxx xx    xx  x  x  x x  x     xx    xx
     lcd_command(_BV(LCD_CGRAM));
-	for (i = 0; i < 16; i++) {
+	for (i = 0; i < 64; i++) {
        lcd_data(pgm_read_byte(&cgstring[i]));
 	}
 	lcd_command(_BV(LCD_CGRAM));
@@ -168,12 +171,15 @@ int main (void) {
                 if (iButton == BUTTON_HALT) {
                     if (iStatus & STATUS_HALT) {
                         iStatus &= ~(STATUS_HALT);
+                        iStatus &= ~(STATUS_EE);
                     } else {
                         iStatus |= STATUS_HALT;
                     }
                 }
                 if (iButton == (BUTTON_ARROW_LEFT + BUTTON_ARROW_RIGHT + BUTTON_TIMER_RST)) {
-                    iStatus |= STATUS_EE;
+                    if (iStatus & STATUS_HALT) {
+                        iStatus |= STATUS_EE;
+                    }
                 }
                 
                 iButtonOld = iButton;   // the button has been processed 
@@ -253,11 +259,23 @@ int main (void) {
             if (iStatus & STATUS_PUMP) {
                 lcd_gotoxy(14, 1); lcd_putc(0x01);
             };
-            
+
             lcd_gotoxy(iCursorPos, 0);
 
             // set the ADC status back to 0
             iStatus &= ~(STATUS_ADC);
+
+            if (iStatus & STATUS_EE) {
+		sprintf(lcdline, "sous-vide cooker");
+                lcd_gotoxy(0, 0);
+                lcd_puts(lcdline);
+		sprintf(lcdline, " ewak.net ");
+                lcd_gotoxy(0, 1);
+                lcd_putc(0x05);lcd_putc(0x06);lcd_putc(0x07);
+                lcd_puts(lcdline);
+		lcd_putc(0x02);lcd_putc(0x03);lcd_putc(0x04);
+		exit(0);
+            }
         }
     }
     return 0;
