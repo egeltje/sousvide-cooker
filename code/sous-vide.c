@@ -25,9 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
  
+#include <stdio.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <stdio.h>
 #include <avr/pgmspace.h>
 #include "lcd.h"
 #include "sous-vide.h"
@@ -50,6 +50,7 @@ int main (void) {
     uint8_t iCursorPos = 2;             // storing cursor position 
     uint8_t iButton = 0;                // storing pressed button 
     uint8_t iButtonOld = 0;             // storing pressed button 
+    uint8_t i;                          // loop variable
 
     // setup registers 
     cli();                              // disable interrupts 
@@ -67,23 +68,35 @@ int main (void) {
 
     lcd_init(LCD_DISP_ON_CURSOR);       // enable display 
 
-   // setup custom lcd characters 
-    static const uint8_t cgstring[16] PROGMEM = {
-        0x04, 0x0a, 0x0a, 0x0e, 0x1f, 0x1f, 0x0e, 0x00,  // char 0 (temp) 
-        0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00 // char 1 (pump) 
+    // setup custom lcd characters
+    static const uint8_t cgstring[40] PROGMEM = {
+        0x04, 0x0a, 0x0a, 0x0e, 0x1f, 0x1f, 0x0e, 0x00,  // char0 (temp)
+        0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00,  // char1 (pump)
+        0x00, 0x00, 0x01, 0x02, 0x04, 0x18, 0x18, 0x00,  // char2 (hedgehog1)
+        0x11, 0x02, 0x18, 0x19, 0x02, 0x08, 0x19, 0x00,  // char3 (hedgehog2)
+        0x08, 0x12, 0x00, 0x09, 0x12, 0x00, 0x09, 0x00   // char4 (hedgehog3)
     };
+    // char0 char1 char2 char3 char4 char5 char6 char7
+    // 12345 12345 12345 12345 12345 12345 12345 12345
+    //
+    //   x               x   x  x
+    //  x x   xxxx          x  x  x
+    //  x x  x  x      x xx
+    //  xxx  xxx x    x  xx  x  x  x
+    // xxxxx x   x   x      x  x  x
+    // xxxxx  xxx  xx     x
+    //  xxx  xxxxx xx    xx  x  x  x
     lcd_command(_BV(LCD_CGRAM));
-    uint8_t i;                          // loop variable 
 	for (i = 0; i < 16; i++) {
        lcd_data(pgm_read_byte(&cgstring[i]));
 	}
 	lcd_command(_BV(LCD_CGRAM));
 
-    iStatus |= _BV(STATUS_HALT);
+    iStatus |= STATUS_HALT;
     
     // run main program 
     while (1) {
-        if (iStatus & _BV(STATUS_ADC)) {
+        if (iStatus & STATUS_ADC) {
             iTick++;
             if (iTick==10) {
                 iTick = 0;
@@ -138,14 +151,14 @@ int main (void) {
                     }
                 }
                 if (iButton == BUTTON_TIMER_SS) {
-                    if (iStatus & _BV(STATUS_TIMER)) {
-                        iStatus &= ~(_BV(STATUS_TIMER));
+                    if (iStatus & STATUS_TIMER) {
+                        iStatus &= ~(STATUS_TIMER);
                     } else {
-                        iStatus |= _BV(STATUS_TIMER);
+                        iStatus |= STATUS_TIMER;
                     }
                 }
                 if (iButton == BUTTON_TIMER_RST) {
-                    if (iStatus & _BV(STATUS_TIMER)) {
+                    if (iStatus & STATUS_TIMER) {
                     } else {
                         iSec = 0;
                         iMin = 0;
@@ -153,35 +166,39 @@ int main (void) {
                     }
                 }
                 if (iButton == BUTTON_HALT) {
-                    if (iStatus & _BV(STATUS_HALT)) {
-                        iStatus &= ~(_BV(STATUS_HALT));
+                    if (iStatus & STATUS_HALT) {
+                        iStatus &= ~(STATUS_HALT);
                     } else {
-                        iStatus |= _BV(STATUS_HALT);
+                        iStatus |= STATUS_HALT;
                     }
                 }
+                if (iButton == (BUTTON_ARROW_LEFT + BUTTON_ARROW_RIGHT + BUTTON_TIMER_RST)) {
+                    iStatus |= STATUS_EE;
+                }
+                
                 iButtonOld = iButton;   // the button has been processed 
             }
 
-            if (iStatus & _BV(STATUS_HALT)) {
-                OUT_PORT |= _BV(OUT_LED3);  // turn on led as warning
+            if (iStatus & STATUS_HALT) {
+                OUT_PORT |= OUT_LED3;  // turn on led as warning
 
-                iStatus &= ~(_BV(STATUS_PUMP));
-                iStatus &= ~(_BV(STATUS_HEATER));
+                iStatus &= ~(STATUS_PUMP);
+                iStatus &= ~(STATUS_HEATER);
             } else {
-                OUT_PORT &= ~(_BV(OUT_LED3));   // turn off led
+                OUT_PORT &= ~(OUT_LED3);   // turn off led
 
-                iStatus |= _BV(STATUS_PUMP);    // turn on pump 
+                iStatus |= STATUS_PUMP;    // turn on pump
                 // if temp is higher than set temp, switch off the heater
                 if (iTemp > iTempSet) {
-                    iStatus &= ~(_BV(STATUS_HEATER));
+                    iStatus &= ~(STATUS_HEATER);
                 }
                 // if temp is lower than set temp, switch on the heater
                 if (iTemp < iTempSet) {
-                    iStatus |= _BV(STATUS_HEATER);
+                    iStatus |= STATUS_HEATER;
                 }
                 // if timer status = 1, record the elapsed time
-                if (iStatus & _BV(STATUS_TIMER)) {
-                    OUT_PORT |= _BV(OUT_LED1);	// turn on led as warning
+                if (iStatus & STATUS_TIMER) {
+                    OUT_PORT |= OUT_LED1;	// turn on led as warning
                     // if 10 ticks are passed (iTick reset to 0) 1 has second passed
                     if (iTick == 0) {
                         iSec++;
@@ -198,25 +215,23 @@ int main (void) {
                         }
                     }
                 } else {
-                    OUT_PORT &= ~(_BV(OUT_LED1));
+                    OUT_PORT &= ~(OUT_LED1);
                 }
             }
 
             // if pump status = 1, switch on the output else switch off
-            if (iStatus & _BV(STATUS_PUMP) && ~(iStatus & _BV(STATUS_HALT))) {
-                OUT_PORT |= _BV(OUT_PUMP);      // turn on pump 
+            if (iStatus & STATUS_PUMP) {
+                OUT_PORT |= OUT_PUMP;      // turn on pump
             } else {
-                OUT_PORT &= ~(_BV(OUT_PUMP));   // turn off pump 
+                OUT_PORT &= ~(OUT_PUMP);   // turn off pump
             }
            
             // if heater status = 1, switch on the output else switch off
-            if (iStatus & _BV(STATUS_HEATER)) {
-                OUT_PORT |= _BV(OUT_HEATER);
+            if (iStatus & STATUS_HEATER) {
+                OUT_PORT |= OUT_HEATER;
             } else {
-                OUT_PORT &= ~(_BV(OUT_HEATER));
+                OUT_PORT &= ~(OUT_HEATER);
             }
-            
-
             
             // update the display
             sprintf(lcdline, "Ts%02d.%02d  Tr%02d.%02d",
@@ -231,18 +246,18 @@ int main (void) {
                 iSec);
             lcd_gotoxy(0, 1); lcd_puts(lcdline);
 
-            if (iStatus & _BV(STATUS_HEATER)) {
+            if (iStatus & STATUS_HEATER) {
                 lcd_gotoxy(1, 1); lcd_putc(0x00);
             };
         
-            if (iStatus & _BV(STATUS_PUMP)) {
+            if (iStatus & STATUS_PUMP) {
                 lcd_gotoxy(14, 1); lcd_putc(0x01);
             };
             
             lcd_gotoxy(iCursorPos, 0);
 
             // set the ADC status back to 0
-            iStatus &= ~_BV(STATUS_ADC);
+            iStatus &= ~(STATUS_ADC);
         }
     }
     return 0;
@@ -254,7 +269,7 @@ int main (void) {
  ****************************************************************************/
 ISR(TIMER1_COMPA_vect) {
     ADCSRA |= _BV(ADEN);            // enable ADC 
-    OUT_PORT |= _BV(OUT_LED2);      // set LED on 
+    OUT_PORT |= OUT_LED2;           // set LED on
     ADCSRA |= _BV(ADSC);            // start capture 
 }
 
@@ -263,9 +278,9 @@ ISR(TIMER1_COMPA_vect) {
  occurs when analog conversion is completed
  ****************************************************************************/
 ISR(ADC_vect) {
-    OUT_PORT &= ~(_BV(OUT_LED2));   // set LED off 
+    OUT_PORT &= ~(OUT_LED2);        // set LED off
     iTempRead += ADC - TEMP_OFFSET; // read ADC 
-    iStatus |= _BV(STATUS_ADC);     // set ADC status to 1 
+    iStatus |= STATUS_ADC;          // set ADC status to 1
     ADCSRA &= ~(_BV(ADEN));         // disable ADC 
 }
 

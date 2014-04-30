@@ -31,11 +31,12 @@
 //                          ((F_CPU / CPU_PRESCALER / Hz)
 #define TEMP_OFFSET         0       /* for future calibration */
 
-#define STATUS_HALT         0       /* status bit for halted operation */
-#define STATUS_PUMP         1       /* status bit for the pump */
-#define STATUS_HEATER       2       /* status bit for the heaC 8?ter */
-#define STATUS_TIMER        3       /* status bit for the timer */
-#define STATUS_ADC          4       /* status bit for the AD converter */
+#define STATUS_HALT         0x01    /* status bit for halted operation */
+#define STATUS_PUMP         0x02    /* status bit for the pump */
+#define STATUS_HEATER       0x04    /* status bit for the heaC 8?ter */
+#define STATUS_TIMER        0x08    /* status bit for the timer */
+#define STATUS_ADC          0x10    /* status bit for the AD converter */
+#define STATUS_EE           0x80    /* status bit for the easter egg */
 
 #define KBD_PORT            PORTD   /* the KBD is attached to IO Port D */
 #define KBD_DIR             DDRD
@@ -50,12 +51,12 @@
 
 #define OUT_PORT            PORTB   /* the output is attached to IO Port B */
 #define OUT_DIR             DDRB
-#define OUT_PUMP            0       /* pin B0 */
-#define OUT_HEATER          1       /* pin B1 */
-#define OUT_AUX0            2       /* pin B2 */
-#define OUT_AUX1            3       /* pin B3 */
-#define OUT_LED1            4       /* pin B4 */
-#define OUT_LED2            5       /* pin B5 */
-#define OUT_LED3            6       /* pin B6 */
+#define OUT_PUMP            0x01    /* pin B0 */
+#define OUT_HEATER          0x02    /* pin B1 */
+#define OUT_AUX0            0x04    /* pin B2 */
+#define OUT_AUX1            0x08    /* pin B3 */
+#define OUT_LED1            0x10    /* pin B4 */
+#define OUT_LED2            0x20    /* pin B5 */
+#define OUT_LED3            0x40    /* pin B6 */
 
 #endif //SOUSVIDE_H
