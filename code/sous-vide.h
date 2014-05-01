@@ -41,7 +41,7 @@
 #define KBD_PORT            PORTD   /* the KBD is attached to IO Port D */
 #define KBD_DIR             DDRD
 #define KBD                 PIND
-#define BUTTON_TIMER_SS     0x01    /* pin D0 */
+#define BUTTON_TIMER_RUN    0x01    /* pin D0 */
 #define BUTTON_TIMER_RST    0x02    /* pin D1 */
 #define BUTTON_HALT         0x04    /* pin D2 */
 #define BUTTON_ARROW_UP     0x08    /* pin D3 */

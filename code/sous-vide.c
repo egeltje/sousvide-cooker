@@ -143,18 +143,23 @@ int main (void) {
                         iCursorPos = 3;
                     }
                 }
-                if (iButton == BUTTON_TIMER_SS) {
-                    if (iStatus & STATUS_TIMER_RUN) {
-                        iStatus &= ~(STATUS_TIMER_RUN);
-                    } else {
-                        iStatus |= STATUS_TIMER_RUN;
+                if (iButton == BUTTON_TIMER_RUN) {
+                    if (iStatus & STATUS_TIMER) {
+                        if (iStatus & STATUS_TIMER_RUN) {
+                            iStatus &= ~(STATUS_TIMER_RUN);
+                        } else {
+                            iStatus |= STATUS_TIMER_RUN;
+                        }
                     }
                 }
                 if (iButton == BUTTON_TIMER_RST) {
-                    if (~(iStatus & STATUS_TIMER_RUN)) {
-                        iSec = 0;
-                        iMin = 0;
-                        iHour = 0;
+                    if (iStatus & STATUS_TIMER) {
+                        if (iStatus & STATUS_TIMER_RUN) {
+                        } else {
+                            iSec = 0;
+                            iMin = 0;
+                            iHour = 0;
+                        }
                     }
                 }
                 if (iButton == BUTTON_HALT) {
@@ -168,28 +173,28 @@ int main (void) {
                 iButtonOld = iButton;   // the button has been processed 
             }
 
-            // the pump should always be on
-            iStatus |= STATUS_PUMP;
-            
-            // if temp is higher than set temp, switch off the heater
-            if (iTemp > iTempSet) {
-                iStatus &= ~(STATUS_HEATER);
-            }
-            // if temp is lower than set temp, switch on the heater
-            if (iTemp < iTempSet) {
-                iStatus |= STATUS_HEATER;
-            }
-
-            // the timer should always be on (but not running)
-            iStatus |= STATUS_TIMER;
-
             if (iStatus & STATUS_HALT) {
-                OUT_PORT |= OUT_LED2;  // turn on led as warning
+                OUT_PORT |= OUT_LED2;       // turn on led as warning
                 iStatus &= ~(STATUS_PUMP);
                 iStatus &= ~(STATUS_HEATER);
                 iStatus &= ~(STATUS_TIMER);
             } else {
                 OUT_PORT &= ~(OUT_LED2);    // turn off led
+
+                // turn on the pump
+                iStatus |= STATUS_PUMP;
+            
+                // if temp is higher than set temp, switch off the heater
+                if (iTemp > iTempSet) {
+                    iStatus &= ~(STATUS_HEATER);
+                }
+                // if temp is lower than set temp, switch on the heater
+                if (iTemp < iTempSet) {
+                    iStatus |= STATUS_HEATER;
+                }
+
+                // turn on the timer (but do not run it)
+                iStatus |= STATUS_TIMER;
             }
 
             // if pump status = 1, switch on the output else switch off
@@ -208,10 +213,10 @@ int main (void) {
                 OUT_PORT &= ~(OUT_HEATER);
             }
             
-            // if timer status = 1, record the elapsed time
+            // if timer status = 1 and timer_run status = 1, record the time
             if ((iStatus & STATUS_TIMER) && (iStatus & STATUS_TIMER_RUN)) {
                 OUT_PORT |= OUT_LED0;	    // turn on led as warning
-                // if 10 ticks are passed (iTick reset to 0) 1 has second passed
+                // if 10 ticks are passed (iTick reset to 0), 1 second passed
                 if (iTick == 0) {
                     iSec++;
                     if (iSec > 59) {
@@ -237,22 +242,23 @@ int main (void) {
                 (iTemp >> 2),
                 ((iTemp & 0x0003) * 25));
             lcd_gotoxy(0, 0); lcd_puts(lcdline);
-            sprintf(lcdline, "[ ] %02d:%02d:%02d [ ]",
-                iHour,
-                iMin,
-                iSec);
-            lcd_gotoxy(0, 1); lcd_puts(lcdline);
-
-            if (iStatus & STATUS_HEATER) {
-                lcd_gotoxy(1, 1); lcd_putc(0x00);
-            };
-            if (iStatus & STATUS_PUMP) {
-                lcd_gotoxy(14, 1); lcd_putc(0x01);
-            };
             if (iStatus & STATUS_HALT) {
-                lcd_gotoxy(14, 1); lcd_putc(0x01);
-            };
-            
+                sprintf(lcdline, "[ ]          [ ]");
+                lcd_gotoxy(0, 1); lcd_puts(lcdline);
+            } else {
+                sprintf(lcdline, "[ ] %02d:%02d:%02d [ ]",
+                    iHour,
+                    iMin,
+                    iSec);
+                lcd_gotoxy(0, 1); lcd_puts(lcdline);
+
+                if (iStatus & STATUS_HEATER) {
+                    lcd_gotoxy(1, 1); lcd_putc(0x00);
+                }
+                if (iStatus & STATUS_PUMP) {
+                    lcd_gotoxy(14, 1); lcd_putc(0x01);
+                }
+            }            
             lcd_gotoxy(iCursorPos, 0);
 
             // set the ADC status back to 0
