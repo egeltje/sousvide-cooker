@@ -10924,9 +10924,12 @@ Cermet, abgedichtet nach IP67</description>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
-<part name="JP9" library="pinhead" deviceset="PINHD-2X3" device=""/>
+<part name="JP9" library="pinhead" deviceset="PINHD-2X3" device="" value="ISP"/>
 <part name="SUPPLY4" library="supply2" deviceset="VCC" device=""/>
 <part name="GND21" library="supply1" deviceset="GND" device=""/>
+<part name="LED4" library="led" deviceset="LED" device="3MM"/>
+<part name="R7" library="rcl" deviceset="R-EU_" device="0207/2V" value="330"/>
+<part name="GND22" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -10991,6 +10994,9 @@ Cermet, abgedichtet nach IP67</description>
 <instance part="JP9" gate="A" x="81.28" y="109.22"/>
 <instance part="SUPPLY4" gate="G$1" x="93.98" y="114.3"/>
 <instance part="GND21" gate="1" x="93.98" y="104.14"/>
+<instance part="LED4" gate="G$1" x="106.68" y="76.2" rot="R90"/>
+<instance part="R7" gate="G$1" x="99.06" y="76.2" rot="R180"/>
+<instance part="GND22" gate="1" x="114.3" y="76.2" rot="R90"/>
 </instances>
 <busses>
 <bus name="DISPLAY[0..7]">
@@ -11147,6 +11153,10 @@ Cermet, abgedichtet nach IP67</description>
 <pinref part="JP9" gate="A" pin="6"/>
 <pinref part="GND21" gate="1" pin="GND"/>
 <wire x1="93.98" y1="106.68" x2="86.36" y2="106.68" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="LED4" gate="G$1" pin="C"/>
+<pinref part="GND22" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="N$3" class="0">
@@ -11540,6 +11550,15 @@ Cermet, abgedichtet nach IP67</description>
 <wire x1="63.5" y1="76.2" x2="60.96" y2="73.66" width="0.1524" layer="91"/>
 <pinref part="IC1" gate="G$1" pin="(SCK)PB7"/>
 <wire x1="60.96" y1="73.66" x2="58.42" y2="73.66" width="0.1524" layer="91"/>
+<pinref part="R7" gate="G$1" pin="2"/>
+<wire x1="93.98" y1="76.2" x2="73.66" y2="76.2" width="0.1524" layer="91"/>
+<junction x="73.66" y="76.2"/>
+</segment>
+</net>
+<net name="N$16" class="0">
+<segment>
+<pinref part="R7" gate="G$1" pin="1"/>
+<pinref part="LED4" gate="G$1" pin="A"/>
 </segment>
 </net>
 </nets>
