@@ -35,7 +35,8 @@
 #define STATUS_PUMP         0x02    /* status bit for the pump */
 #define STATUS_HEATER       0x04    /* status bit for the heaC 8?ter */
 #define STATUS_TIMER        0x08    /* status bit for the timer */
-#define STATUS_ADC          0x10    /* status bit for the AD converter */
+#define STATUS_TIMER_RUN    0x10    /* status bit for the running timer */
+#define STATUS_ADC          0x80    /* status bit for the AD converter */
 
 #define KBD_PORT            PORTD   /* the KBD is attached to IO Port D */
 #define KBD_DIR             DDRD
