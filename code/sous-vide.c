@@ -69,34 +69,24 @@ int main (void) {
     lcd_init(LCD_DISP_ON_CURSOR);       // enable display 
 
     // setup custom lcd characters
-    static const uint8_t cgstring[64] PROGMEM = {
+    static const uint8_t arCustomChar[64] PROGMEM = {
         0x04, 0x0a, 0x0a, 0x0e, 0x1f, 0x1f, 0x0e, 0x00,  // char0 (temp)
         0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00,  // char1 (pump)
-        0x00, 0x00, 0x01, 0x02, 0x04, 0x18, 0x18, 0x00,  // char2 (hedgehog1)
-        0x11, 0x02, 0x18, 0x19, 0x02, 0x08, 0x19, 0x00,  // char3 (hedgehog2)
-        0x08, 0x12, 0x00, 0x09, 0x12, 0x00, 0x09, 0x00,  // char4 (hedgehog3)
-        0x02, 0x09, 0x00, 0x12, 0x09, 0x00, 0x12, 0x00,
-        0x11, 0x08, 0x03, 0x13, 0x08, 0x02, 0x03, 0x00,
-        0x00, 0x00, 0x10, 0x08, 0x04, 0x03, 0x03, 0x00
+        0x02, 0x09, 0x00, 0x12, 0x09, 0x00, 0x12, 0x00,  // char2 (hedgehogR0)
+        0x11, 0x08, 0x03, 0x13, 0x08, 0x02, 0x03, 0x00,  // char3 (hedgehogR1)
+        0x00, 0x00, 0x10, 0x08, 0x04, 0x03, 0x03, 0x00,  // char4 (hedgehogR2)
+        0x00, 0x00, 0x01, 0x02, 0x04, 0x18, 0x18, 0x00,  // char5 (hedgehogL0)
+        0x11, 0x02, 0x18, 0x19, 0x02, 0x08, 0x19, 0x00,  // char6 (hedgehogL1)
+        0x08, 0x12, 0x00, 0x09, 0x12, 0x00, 0x09, 0x00   // char7 (hedgehogL2)
     };
-    // char0 char1 char2 char3 char4 char5 char6 char7
-    // 12345 12345 12345 12345 12345 12345 12345 12345
-    //
-    //   x               x   x  x       x  x   x
-    //  x x   xxxx          x  x  x   x  x  x
-    //  x x  x  x      x xx                   xx x
-    //  xxx  xxx x    x  xx  x  x  x x  x  x  xx  x
-    // xxxxx x   x   x      x  x  x   x  x  x      x
-    // xxxxx  xxx  xx     x                   x     xx
-    //  xxx  xxxxx xx    xx  x  x  x x  x     xx    xx
     lcd_command(_BV(LCD_CGRAM));
-	for (i = 0; i < 64; i++) {
-       lcd_data(pgm_read_byte(&cgstring[i]));
-	}
-	lcd_command(_BV(LCD_CGRAM));
+    for (i = 0; i < 64; i++) {
+        lcd_data(pgm_read_byte(&arCustomChar[i]));
+    }
+    lcd_command(_BV(LCD_CGRAM));
 
     iStatus |= STATUS_HALT;
-    
+
     // run main program 
     while (1) {
         if (iStatus & STATUS_ADC) {
@@ -171,14 +161,8 @@ int main (void) {
                 if (iButton == BUTTON_HALT) {
                     if (iStatus & STATUS_HALT) {
                         iStatus &= ~(STATUS_HALT);
-                        iStatus &= ~(STATUS_EE);
                     } else {
                         iStatus |= STATUS_HALT;
-                    }
-                }
-                if (iButton == (BUTTON_ARROW_LEFT + BUTTON_ARROW_RIGHT + BUTTON_TIMER_RST)) {
-                    if (iStatus & STATUS_HALT) {
-                        iStatus |= STATUS_EE;
                     }
                 }
                 
@@ -186,14 +170,10 @@ int main (void) {
             }
 
             if (iStatus & STATUS_HALT) {
-                OUT_PORT |= OUT_LED3;  // turn on led as warning
-
-                iStatus &= ~(STATUS_PUMP);
-                iStatus &= ~(STATUS_HEATER);
+                OUT_PORT |= OUT_LED2;  // turn on led as warning
             } else {
-                OUT_PORT &= ~(OUT_LED3);   // turn off led
+                OUT_PORT &= ~(OUT_LED2);   // turn off led
 
-                iStatus |= STATUS_PUMP;    // turn on pump
                 // if temp is higher than set temp, switch off the heater
                 if (iTemp > iTempSet) {
                     iStatus &= ~(STATUS_HEATER);
@@ -202,43 +182,46 @@ int main (void) {
                 if (iTemp < iTempSet) {
                     iStatus |= STATUS_HEATER;
                 }
-                // if timer status = 1, record the elapsed time
-                if (iStatus & STATUS_TIMER) {
-                    OUT_PORT |= OUT_LED1;	// turn on led as warning
-                    // if 10 ticks are passed (iTick reset to 0) 1 has second passed
-                    if (iTick == 0) {
-                        iSec++;
-                        if (iSec > 59) {
-                            iSec = 0;
-                            iMin++;
-                            if (iMin > 59) {
-                                iMin = 0;
-                                iHour++;
-                                if (iHour > 99) {
-                                    iHour = 0;
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    OUT_PORT &= ~(OUT_LED1);
-                }
             }
 
             // if pump status = 1, switch on the output else switch off
-            if (iStatus & STATUS_PUMP) {
-                OUT_PORT |= OUT_PUMP;      // turn on pump
+            if ((iStatus & STATUS_PUMP) && ~(iStatus & STATUS_HALT)) {
+                OUT_PORT |= OUT_PUMP;
             } else {
-                OUT_PORT &= ~(OUT_PUMP);   // turn off pump
+                OUT_PORT &= ~(OUT_PUMP);
             }
            
             // if heater status = 1, switch on the output else switch off
-            if (iStatus & STATUS_HEATER) {
+            if ((iStatus & STATUS_HEATER) && ~(iStatus & STATUS_HALT)) {
                 OUT_PORT |= OUT_HEATER;
+                OUT_PORT |= OUT_LED1;
             } else {
                 OUT_PORT &= ~(OUT_HEATER);
+                OUT_PORT &= ~(OUT_LED1);
             }
             
+            // if timer status = 1, record the elapsed time
+            if ((iStatus & STATUS_TIMER) && ~(iStatus & STATUS_HALT)) {
+                OUT_PORT |= OUT_LED0;	// turn on led as warning
+                // if 10 ticks are passed (iTick reset to 0) 1 has second passed
+                if (iTick == 0) {
+                    iSec++;
+                    if (iSec > 59) {
+                        iSec = 0;
+                        iMin++;
+                        if (iMin > 59) {
+                            iMin = 0;
+                            iHour++;
+                            if (iHour > 99) {
+                                iHour = 0;
+                            }
+                        }
+                    }
+                }
+            } else {
+                OUT_PORT &= ~(OUT_LED0);
+            }
+
             // update the display
             sprintf(lcdline, "Ts%02d.%02d  Tr%02d.%02d",
                 (iTempSet >> 2),
@@ -264,18 +247,6 @@ int main (void) {
 
             // set the ADC status back to 0
             iStatus &= ~(STATUS_ADC);
-
-            if (iStatus & STATUS_EE) {
-		sprintf(lcdline, "sous-vide cooker");
-                lcd_gotoxy(0, 0);
-                lcd_puts(lcdline);
-		sprintf(lcdline, " ewak.net ");
-                lcd_gotoxy(0, 1);
-                lcd_putc(0x05);lcd_putc(0x06);lcd_putc(0x07);
-                lcd_puts(lcdline);
-		lcd_putc(0x02);lcd_putc(0x03);lcd_putc(0x04);
-		exit(0);
-            }
         }
     }
     return 0;
@@ -287,7 +258,7 @@ int main (void) {
  ****************************************************************************/
 ISR(TIMER1_COMPA_vect) {
     ADCSRA |= _BV(ADEN);            // enable ADC 
-    OUT_PORT |= OUT_LED2;           // set LED on
+    OUT_PORT |= OUT_LED3;           // set LED on
     ADCSRA |= _BV(ADSC);            // start capture 
 }
 
@@ -296,7 +267,7 @@ ISR(TIMER1_COMPA_vect) {
  occurs when analog conversion is completed
  ****************************************************************************/
 ISR(ADC_vect) {
-    OUT_PORT &= ~(OUT_LED2);        // set LED off
+    OUT_PORT &= ~(OUT_LED3);        // set LED off
     iTempRead += ADC - TEMP_OFFSET; // read ADC 
     iStatus |= STATUS_ADC;          // set ADC status to 1
     ADCSRA &= ~(_BV(ADEN));         // disable ADC 

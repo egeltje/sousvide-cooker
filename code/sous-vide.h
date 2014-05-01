@@ -36,7 +36,6 @@
 #define STATUS_HEATER       0x04    /* status bit for the heaC 8?ter */
 #define STATUS_TIMER        0x08    /* status bit for the timer */
 #define STATUS_ADC          0x10    /* status bit for the AD converter */
-#define STATUS_EE           0x80    /* status bit for the easter egg */
 
 #define KBD_PORT            PORTD   /* the KBD is attached to IO Port D */
 #define KBD_DIR             DDRD
@@ -55,8 +54,9 @@
 #define OUT_HEATER          0x02    /* pin B1 */
 #define OUT_AUX0            0x04    /* pin B2 */
 #define OUT_AUX1            0x08    /* pin B3 */
-#define OUT_LED1            0x10    /* pin B4 */
-#define OUT_LED2            0x20    /* pin B5 */
-#define OUT_LED3            0x40    /* pin B6 */
+#define OUT_LED0            0x10    /* pin B4 */
+#define OUT_LED1            0x20    /* pin B5 */
+#define OUT_LED2            0x40    /* pin B6 */
+#define OUT_LED3            0x80    /* pin B7 */
 
 #endif //SOUSVIDE_H
