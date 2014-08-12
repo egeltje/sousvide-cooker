@@ -10776,7 +10776,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <part name="R3" library="rcl" deviceset="R-EU_" device="0207/2V" value="330"/>
 <part name="R4" library="rcl" deviceset="R-EU_" device="0207/2V" value="330"/>
 <part name="R5" library="rcl" deviceset="R-EU_" device="0207/2V" value="330"/>
-<part name="JP2" library="pinhead" deviceset="PINHD-2X3" device="" value="ISP"/>
+<part name="JP2" library="pinhead" deviceset="PINHD-2X3" device="" value="IO"/>
 </parts>
 <sheets>
 <sheet>
@@ -10784,7 +10784,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 </plain>
 <instances>
 <instance part="SUPPLY1" gate="G$1" x="7.62" y="93.98"/>
-<instance part="R1" gate="G$1" x="15.24" y="91.44" rot="R180"/>
+<instance part="R1" gate="G$1" x="15.24" y="91.44"/>
 <instance part="JP3" gate="A" x="228.6" y="35.56"/>
 <instance part="S7" gate="1" x="172.72" y="68.58" rot="R270"/>
 <instance part="S6" gate="1" x="160.02" y="66.04" rot="R270"/>
@@ -10948,10 +10948,10 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <wire x1="22.86" y1="81.28" x2="22.86" y2="83.82" width="0.1524" layer="91"/>
 <junction x="22.86" y="83.82"/>
 <wire x1="22.86" y1="83.82" x2="7.62" y2="83.82" width="0.1524" layer="91"/>
-<pinref part="R1" gate="G$1" pin="2"/>
-<wire x1="10.16" y1="91.44" x2="7.62" y2="91.44" width="0.1524" layer="91"/>
-<junction x="7.62" y="91.44"/>
 <junction x="7.62" y="83.82"/>
+<pinref part="R1" gate="G$1" pin="1"/>
+<wire x1="7.62" y1="91.44" x2="10.16" y2="91.44" width="0.1524" layer="91"/>
+<junction x="7.62" y="91.44"/>
 </segment>
 <segment>
 <pinref part="R8" gate="G$1" pin="2"/>
@@ -11154,10 +11154,10 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <segment>
 <pinref part="JP1" gate="A" pin="5"/>
 <wire x1="20.32" y1="15.24" x2="83.82" y2="15.24" width="0.1524" layer="91"/>
+<pinref part="R1" gate="G$1" pin="2"/>
+<wire x1="20.32" y1="15.24" x2="20.32" y2="91.44" width="0.1524" layer="91"/>
 <pinref part="IC1" gate="G$1" pin="PC6(/RESET)"/>
-<pinref part="R1" gate="G$1" pin="1"/>
-<wire x1="22.86" y1="91.44" x2="20.32" y2="91.44" width="0.1524" layer="91"/>
-<wire x1="20.32" y1="91.44" x2="20.32" y2="15.24" width="0.1524" layer="91"/>
+<wire x1="20.32" y1="91.44" x2="22.86" y2="91.44" width="0.1524" layer="91"/>
 <junction x="20.32" y="91.44"/>
 </segment>
 </net>
