@@ -12724,11 +12724,11 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <instance part="R1" gate="G$1" x="10.16" y="91.44"/>
 <instance part="GND7" gate="1" x="5.08" y="33.02"/>
 <instance part="R7" gate="G$1" x="86.36" y="73.66"/>
-<instance part="GND5" gate="1" x="177.8" y="73.66"/>
-<instance part="R5" gate="G$1" x="177.8" y="81.28"/>
-<instance part="R6" gate="G$1" x="215.9" y="81.28" rot="R90"/>
-<instance part="SUPPLY4" gate="G$1" x="175.26" y="86.36" rot="R90"/>
-<instance part="GND6" gate="1" x="215.9" y="73.66"/>
+<instance part="GND5" gate="1" x="160.02" y="73.66"/>
+<instance part="R5" gate="G$1" x="160.02" y="81.28"/>
+<instance part="R6" gate="G$1" x="198.12" y="81.28" rot="R90"/>
+<instance part="SUPPLY4" gate="G$1" x="157.48" y="86.36" rot="R90"/>
+<instance part="GND6" gate="1" x="198.12" y="73.66"/>
 <instance part="H1" gate="G$1" x="2.54" y="10.16"/>
 <instance part="H3" gate="G$1" x="2.54" y="2.54"/>
 <instance part="H2" gate="G$1" x="30.48" y="10.16"/>
@@ -12756,7 +12756,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <instance part="R3" gate="G$1" x="76.2" y="86.36"/>
 <instance part="R4" gate="G$1" x="76.2" y="83.82"/>
 <instance part="JP3" gate="A" x="127" y="93.98"/>
-<instance part="LCD1" gate="G$1" x="177.8" y="99.06" rot="R90"/>
+<instance part="LCD1" gate="G$1" x="160.02" y="99.06" rot="R90"/>
 <instance part="GND9" gate="1" x="55.88" y="17.78"/>
 <instance part="S7" gate="1" x="104.14" y="30.48" rot="R270"/>
 <instance part="S6" gate="1" x="119.38" y="33.02" rot="R270"/>
@@ -12861,9 +12861,9 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <pinref part="R5" gate="G$1" pin="E"/>
 <pinref part="GND5" gate="1" pin="GND"/>
 <pinref part="LCD1" gate="G$1" pin="VCC"/>
-<wire x1="180.34" y1="86.36" x2="180.34" y2="76.2" width="0.1524" layer="91"/>
-<wire x1="180.34" y1="76.2" x2="177.8" y2="76.2" width="0.1524" layer="91"/>
-<junction x="177.8" y="76.2"/>
+<wire x1="162.56" y1="86.36" x2="162.56" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="162.56" y1="76.2" x2="160.02" y2="76.2" width="0.1524" layer="91"/>
+<junction x="160.02" y="76.2"/>
 </segment>
 <segment>
 <pinref part="GND2" gate="1" pin="GND"/>
@@ -12905,7 +12905,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <pinref part="LCD1" gate="G$1" pin="VSS"/>
 <pinref part="SUPPLY4" gate="G$1" pin="VCC"/>
 <pinref part="R5" gate="G$1" pin="A"/>
-<junction x="177.8" y="86.36"/>
+<junction x="160.02" y="86.36"/>
 </segment>
 <segment>
 <pinref part="SUPPLY1" gate="G$1" pin="VCC"/>
@@ -13079,64 +13079,64 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <segment>
 <pinref part="IC1" gate="G$1" pin="PD0(RXD)"/>
 <pinref part="LCD1" gate="G$1" pin="RS"/>
-<wire x1="71.12" y1="68.58" x2="185.42" y2="68.58" width="0.1524" layer="91"/>
-<wire x1="185.42" y1="68.58" x2="185.42" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="68.58" x2="167.64" y2="68.58" width="0.1524" layer="91"/>
+<wire x1="167.64" y1="68.58" x2="167.64" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$22" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="PD1(TXD)"/>
 <pinref part="LCD1" gate="G$1" pin="R/W"/>
-<wire x1="71.12" y1="66.04" x2="187.96" y2="66.04" width="0.1524" layer="91"/>
-<wire x1="187.96" y1="66.04" x2="187.96" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="66.04" x2="170.18" y2="66.04" width="0.1524" layer="91"/>
+<wire x1="170.18" y1="66.04" x2="170.18" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$23" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="PD2(INT0)"/>
 <pinref part="LCD1" gate="G$1" pin="E"/>
-<wire x1="71.12" y1="63.5" x2="190.5" y2="63.5" width="0.1524" layer="91"/>
-<wire x1="190.5" y1="63.5" x2="190.5" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="63.5" x2="172.72" y2="63.5" width="0.1524" layer="91"/>
+<wire x1="172.72" y1="63.5" x2="172.72" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$28" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="PD3(INT1)"/>
-<wire x1="71.12" y1="60.96" x2="203.2" y2="60.96" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="60.96" x2="185.42" y2="60.96" width="0.1524" layer="91"/>
 <pinref part="LCD1" gate="G$1" pin="DB4"/>
-<wire x1="203.2" y1="60.96" x2="203.2" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="185.42" y1="60.96" x2="185.42" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$30" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="PD4(XCK/T0)"/>
-<wire x1="71.12" y1="58.42" x2="205.74" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="58.42" x2="187.96" y2="58.42" width="0.1524" layer="91"/>
 <pinref part="LCD1" gate="G$1" pin="DB5"/>
-<wire x1="205.74" y1="58.42" x2="205.74" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="187.96" y1="58.42" x2="187.96" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$32" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="PD5(T1)"/>
-<wire x1="71.12" y1="55.88" x2="208.28" y2="55.88" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="55.88" x2="190.5" y2="55.88" width="0.1524" layer="91"/>
 <pinref part="LCD1" gate="G$1" pin="DB6"/>
-<wire x1="208.28" y1="55.88" x2="208.28" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="190.5" y1="55.88" x2="190.5" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$33" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="PD6(AIN0)"/>
-<wire x1="71.12" y1="53.34" x2="210.82" y2="53.34" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="53.34" x2="193.04" y2="53.34" width="0.1524" layer="91"/>
 <pinref part="LCD1" gate="G$1" pin="DB7"/>
-<wire x1="210.82" y1="86.36" x2="210.82" y2="53.34" width="0.1524" layer="91"/>
+<wire x1="193.04" y1="86.36" x2="193.04" y2="53.34" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$34" class="0">
 <segment>
 <pinref part="IC1" gate="G$1" pin="PD7(AIN1)"/>
 <pinref part="LCD1" gate="G$1" pin="LEDA"/>
-<wire x1="71.12" y1="50.8" x2="213.36" y2="50.8" width="0.1524" layer="91"/>
-<wire x1="213.36" y1="50.8" x2="213.36" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="71.12" y1="50.8" x2="195.58" y2="50.8" width="0.1524" layer="91"/>
+<wire x1="195.58" y1="50.8" x2="195.58" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$2" class="0">
@@ -13149,7 +13149,7 @@ Source: http://www.diodes.com/datasheets/ds23001.pdf</description>
 <segment>
 <pinref part="R5" gate="G$1" pin="S"/>
 <pinref part="LCD1" gate="G$1" pin="VO"/>
-<wire x1="182.88" y1="81.28" x2="182.88" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="165.1" y1="81.28" x2="165.1" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$15" class="0">
