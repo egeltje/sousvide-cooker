@@ -38,26 +38,23 @@
 #define STATUS_TIMER_RUN    0x10    /* status bit for the running timer */
 #define STATUS_ADC          0x80    /* status bit for the AD converter */
 
-#define KBD_PORT            PORTD   /* the KBD is attached to IO Port D */
-#define KBD_DIR             DDRD
-#define KBD                 PIND
+#define KBD_PORT            PORTB   /* the KBD is attached to IO Port B */
+#define KBD_DIR             DDRB
+#define KBD                 PINB
 #define BUTTON_TIMER_RUN    0x01    /* pin D0 */
 #define BUTTON_TIMER_RST    0x02    /* pin D1 */
 #define BUTTON_HALT         0x04    /* pin D2 */
-#define BUTTON_ARROW_UP     0x08    /* pin D3 */
-#define BUTTON_ARROW_RIGHT  0x10    /* pin D4 */
+#define BUTTON_ARROW_RIGHT  0x08    /* pin D3 */
+#define BUTTON_ARROW_UP     0x10    /* pin D4 */
 #define BUTTON_ARROW_DOWN   0x20    /* pin D5 */
 #define BUTTON_ARROW_LEFT   0x40    /* pin D6 */
 
-#define OUT_PORT            PORTB   /* the output is attached to IO Port B */
-#define OUT_DIR             DDRB
-#define OUT_PUMP            0x01    /* pin B0 */
-#define OUT_HEATER          0x02    /* pin B1 */
-#define OUT_AUX0            0x04    /* pin B2 */
-#define OUT_AUX1            0x08    /* pin B3 */
-#define OUT_LED0            0x10    /* pin B4 */
-#define OUT_LED1            0x20    /* pin B5 */
-#define OUT_LED2            0x40    /* pin B6 */
-#define OUT_LED3            0x80    /* pin B7 */
+#define OUT_PORT            PORTC   /* the output is attached to IO Port C */
+#define OUT_DIR             DDRC
+#define OUT_PUMP            0x02    /* pin B0 */
+#define OUT_HEATER          0x04    /* pin B1 */
+#define OUT_AUX0            0x08    /* pin B2 */
+#define OUT_LED_GREEN       0x10    /* pin B3 */
+#define OUT_LED_RED         0x20    /* pin B4 */
 
 #endif //SOUSVIDE_H

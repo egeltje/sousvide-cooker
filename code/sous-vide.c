@@ -54,18 +54,22 @@ int main (void) {
 
     // setup registers 
     cli();                              // disable interrupts 
+    KBD_DIR  = 0x80;
     KBD_PORT = 0xff;                    // enable pull-ups for row inputs 
-    OUT_DIR = 0xff;                     // enable all pins for output 
+    OUT_DIR = 0x3e;                     // enable pins for output 
     TCCR1B = _BV(WGM12) |               // CTC mode, top = OCR1A 
              _BV(CS10) | _BV(CS12);     // 1024 prescale 
-    TIMSK = _BV(OCIE1A);                // enable timer1 interrupt 
-    OCR1A = SAMPLE_FREQUENCY;           // top is calculated to be 1 sec 
+    TIMSK1 = _BV(OCIE1A);                // enable timer1 interrupt 
+    OCR1A = SAMPLE_FREQUENCY;           // top is calculated to be 1 sec
+    DIDR0 = 0x01;
     ADCSRA = _BV(ADIE) |                // enable adc interrupt 
             _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);	// 128 prescale 
     ADMUX = _BV(REFS1) | _BV(REFS0);    // internal 2.56V reference 
     ACSR  = _BV(ACD);                   // disable analog comparator 
+    ADCSRA |= _BV(ADEN);            // enable ADC 
     sei();                              // enable interrupts 
 
+    PORTD |= 0x80;			// turn on background lighting
     lcd_init(LCD_DISP_ON_CURSOR);       // enable display 
 
     // setup custom lcd characters
@@ -174,13 +178,10 @@ int main (void) {
             }
 
             if (iStatus & STATUS_HALT) {
-                OUT_PORT |= OUT_LED2;       // turn on led as warning
                 iStatus &= ~(STATUS_PUMP);
                 iStatus &= ~(STATUS_HEATER);
                 iStatus &= ~(STATUS_TIMER);
             } else {
-                OUT_PORT &= ~(OUT_LED2);    // turn off led
-
                 // turn on the pump
                 iStatus |= STATUS_PUMP;
             
@@ -206,16 +207,14 @@ int main (void) {
            
             // if heater status = 1, switch on the output else switch off
             if (iStatus & STATUS_HEATER) {
-                OUT_PORT |= OUT_LED1;	    // turn on led as warning
                 OUT_PORT |= OUT_HEATER;
             } else {
-                OUT_PORT &= ~(OUT_LED1);    // turn off led
                 OUT_PORT &= ~(OUT_HEATER);
             }
             
             // if timer status = 1 and timer_run status = 1, record the time
             if ((iStatus & STATUS_TIMER) && (iStatus & STATUS_TIMER_RUN)) {
-                OUT_PORT |= OUT_LED0;	    // turn on led as warning
+                OUT_PORT |= OUT_LED_GREEN;	    // turn on led as warning
                 // if 10 ticks are passed (iTick reset to 0), 1 second passed
                 if (iTick == 0) {
                     iSec++;
@@ -232,7 +231,7 @@ int main (void) {
                     }
                 }
             } else {
-                OUT_PORT &= ~(OUT_LED0);    // turn off led
+                OUT_PORT &= ~(OUT_LED_GREEN);    // turn off led
             }
 
             // update the display
@@ -264,8 +263,8 @@ int main (void) {
             // set the ADC status back to 0
             iStatus &= ~(STATUS_ADC);
         }
-    }
-    return 0;
+  }
+  return 0;
 }
 
 /****************************************************************************
@@ -273,8 +272,7 @@ int main (void) {
  occurs when timer reaches TOP as set in OCR1A
  ****************************************************************************/
 ISR(TIMER1_COMPA_vect) {
-    ADCSRA |= _BV(ADEN);            // enable ADC 
-    OUT_PORT |= OUT_LED3;           // set LED on
+    PORTB |= 0x80;           // set LED on
     ADCSRA |= _BV(ADSC);            // start capture 
 }
 
@@ -283,9 +281,8 @@ ISR(TIMER1_COMPA_vect) {
  occurs when analog conversion is completed
  ****************************************************************************/
 ISR(ADC_vect) {
-    OUT_PORT &= ~(OUT_LED3);        // set LED off
+    PORTB &= ~(0x80);        // set LED off
     iTempRead += ADC - TEMP_OFFSET; // read ADC 
     iStatus |= STATUS_ADC;          // set ADC status to 1
-    ADCSRA &= ~(_BV(ADEN));         // disable ADC 
 }
 
