@@ -55,13 +55,14 @@ int main (void) {
     // setup registers 
     cli();                              // disable interrupts 
     KBD_DIR  = 0x80;
-    KBD_PORT = 0xff;                    // enable pull-ups for row inputs 
-    OUT_DIR = 0x3e;                     // enable pins for output 
+    KBD_PORT = 0x7f;                    // enable pull-ups for row inputs 
+    LCD_PORT = 0xff;
+    DIDR0 = 0x01;			// disconnect ADC0 (PORTC.1) from IO
+    OUT_DIR = 0x3e;                     // enable PORTC pins for output 
     TCCR1B = _BV(WGM12) |               // CTC mode, top = OCR1A 
              _BV(CS10) | _BV(CS12);     // 1024 prescale 
     TIMSK1 = _BV(OCIE1A);                // enable timer1 interrupt 
     OCR1A = SAMPLE_FREQUENCY;           // top is calculated to be 1 sec
-    DIDR0 = 0x01;
     ADCSRA = _BV(ADIE) |                // enable adc interrupt 
             _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);	// 128 prescale 
     ADMUX = _BV(REFS1) | _BV(REFS0);    // internal 2.56V reference 
@@ -69,8 +70,9 @@ int main (void) {
     ADCSRA |= _BV(ADEN);            // enable ADC 
     sei();                              // enable interrupts 
 
-    PORTD |= 0x80;			// turn on background lighting
     lcd_init(LCD_DISP_ON_CURSOR);       // enable display 
+    DDRD = 0xff;
+    PORTD |= 0x80;			// turn on background lighting
 
     // setup custom lcd characters
     static const uint8_t arCustomChar[64] PROGMEM = {
@@ -90,9 +92,11 @@ int main (void) {
     lcd_command(_BV(LCD_CGRAM));
 
     iStatus |= STATUS_HALT;
+    PORTD |= 0x80;			// turn on background lighting
 
     // run main program 
     while (1) {
+
         if (iStatus & STATUS_ADC) {
             iTick++;
             if (iTick==10) {
@@ -101,7 +105,7 @@ int main (void) {
                 iTempRead = 0;
             }
 
-            iButton = (KBD ^ 0xff);
+            iButton = (KBD ^ 0x7f);
             if (iButton != iButtonOld) {    // new button pressed (debounce) 
                 // BUTTON_ARROW_LEFT and BUTTON_ARROW_RIGHT move the cursor 
                 // position: pos2=decimals, pos3=single digits, pos5=fraction
@@ -208,8 +212,10 @@ int main (void) {
             // if heater status = 1, switch on the output else switch off
             if (iStatus & STATUS_HEATER) {
                 OUT_PORT |= OUT_HEATER;
+                OUT_PORT |= OUT_LED_RED;	    // turn on led as warning
             } else {
                 OUT_PORT &= ~(OUT_HEATER);
+                OUT_PORT &= ~(OUT_LED_RED);	    // turn on led as warning
             }
             
             // if timer status = 1 and timer_run status = 1, record the time
@@ -272,7 +278,7 @@ int main (void) {
  occurs when timer reaches TOP as set in OCR1A
  ****************************************************************************/
 ISR(TIMER1_COMPA_vect) {
-    PORTB |= 0x80;           // set LED on
+    PORTB |= 0x80;                  // set LED on
     ADCSRA |= _BV(ADSC);            // start capture 
 }
 
@@ -281,7 +287,7 @@ ISR(TIMER1_COMPA_vect) {
  occurs when analog conversion is completed
  ****************************************************************************/
 ISR(ADC_vect) {
-    PORTB &= ~(0x80);        // set LED off
+    PORTB &= ~(0x80);               // set LED off
     iTempRead += ADC - TEMP_OFFSET; // read ADC 
     iStatus |= STATUS_ADC;          // set ADC status to 1
 }
