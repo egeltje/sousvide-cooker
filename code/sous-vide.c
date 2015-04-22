@@ -27,11 +27,13 @@
  
 #include <stdio.h>
 #include <avr/io.h>
+#include <avr/eeprom.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include "lcd.h"
 #include "sous-vide.h"
 
+volatile uint16_t arPeriods[16][2];
 volatile uint16_t iTemp;
 volatile uint16_t iTempRead;
 volatile uint16_t iTempSet;
@@ -40,6 +42,8 @@ volatile uint8_t iMin;
 volatile uint8_t iSec;
 volatile uint8_t iTick;
 volatile uint8_t iStatus;
+volatile uint8_t iPeriod;
+uint16_t iTempOffset = 0;           // storing sensor offset
 
 /****************************************************************************
  main program
@@ -71,7 +75,7 @@ int main (void) {
     sei();                              // enable interrupts 
 
     lcd_init(LCD_DISP_ON_CURSOR);       // enable display 
-    DDRD = 0xff;
+    DDRD |= 0x80;			// enable pin for background ligting
     PORTD |= 0x80;			// turn on background lighting
 
     // setup custom lcd characters
@@ -91,8 +95,11 @@ int main (void) {
     }
     lcd_command(_BV(LCD_CGRAM));
 
+    iTempOffset = eeprom_read_word((uint16_t*)0);
+//    eeprom_read_block((void*)&arPeriods, (const void*)2, 32);
+
     iStatus |= STATUS_HALT;
-    PORTD |= 0x80;			// turn on background lighting
+    iPeriod = iTempOffset;
 
     // run main program 
     while (1) {
@@ -212,15 +219,14 @@ int main (void) {
             // if heater status = 1, switch on the output else switch off
             if (iStatus & STATUS_HEATER) {
                 OUT_PORT |= OUT_HEATER;
-                OUT_PORT |= OUT_LED_RED;	    // turn on led as warning
             } else {
                 OUT_PORT &= ~(OUT_HEATER);
-                OUT_PORT &= ~(OUT_LED_RED);	    // turn on led as warning
             }
             
             // if timer status = 1 and timer_run status = 1, record the time
             if ((iStatus & STATUS_TIMER) && (iStatus & STATUS_TIMER_RUN)) {
-                OUT_PORT |= OUT_LED_GREEN;	    // turn on led as warning
+                OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
+                OUT_PORT |= OUT_LED_GREEN;	    // turn on green led
                 // if 10 ticks are passed (iTick reset to 0), 1 second passed
                 if (iTick == 0) {
                     iSec++;
@@ -237,34 +243,23 @@ int main (void) {
                     }
                 }
             } else {
-                OUT_PORT &= ~(OUT_LED_GREEN);    // turn off led
+                OUT_PORT &= ~(OUT_LED_GREEN);    // turn off green led
+                OUT_PORT |= OUT_LED_RED;         // turn on green led
             }
 
             // update the display
-            sprintf(lcdline, "Ts%02d.%02d  Tr%02d.%02d",
+            sprintf(lcdline, "Ts%02d.%02d 00:00 P%01x",
                 (iTempSet >> 2),
                 ((iTempSet & 0x0003) * 25),
-                (iTemp >> 2),
-                ((iTemp & 0x0003) * 25));
+		iPeriod);
             lcd_gotoxy(0, 0); lcd_puts(lcdline);
-            if (iStatus & STATUS_HALT) {
-                sprintf(lcdline, "[ ]          [ ]");
-                lcd_gotoxy(0, 1); lcd_puts(lcdline);
-            } else {
-                sprintf(lcdline, "[ ] %02d:%02d:%02d [ ]",
-                    iHour,
-                    iMin,
-                    iSec);
-                lcd_gotoxy(0, 1); lcd_puts(lcdline);
-
-                if (iStatus & STATUS_HEATER) {
-                    lcd_gotoxy(1, 1); lcd_putc(0x00);
-                }
-                if (iStatus & STATUS_PUMP) {
-                    lcd_gotoxy(14, 1); lcd_putc(0x01);
-                }
-            }            
-            lcd_gotoxy(iCursorPos, 0);
+            sprintf(lcdline, "Tr%02d.%02d %02d:%02d:%02d",
+                (iTemp >> 2),
+                ((iTemp & 0x0003) * 25),
+                iHour,
+                iMin,
+                iSec);
+            lcd_gotoxy(0, 1); lcd_puts(lcdline);
 
             // set the ADC status back to 0
             iStatus &= ~(STATUS_ADC);
@@ -288,7 +283,7 @@ ISR(TIMER1_COMPA_vect) {
  ****************************************************************************/
 ISR(ADC_vect) {
     PORTB &= ~(0x80);               // set LED off
-    iTempRead += ADC - TEMP_OFFSET; // read ADC 
+    iTempRead += ADC - iTempOffset; // read ADC 
     iStatus |= STATUS_ADC;          // set ADC status to 1
 }
 

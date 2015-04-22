@@ -29,7 +29,6 @@
 
 #define SAMPLE_FREQUENCY	((1000000 / 1024) / 10)
 //                          ((F_CPU / CPU_PRESCALER / Hz)
-#define TEMP_OFFSET         0       /* for future calibration */
 
 #define STATUS_HALT         0x01    /* status bit for halted operation */
 #define STATUS_PUMP         0x02    /* status bit for the pump */
