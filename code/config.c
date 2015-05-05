@@ -24,192 +24,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
- 
+
 #include <stdio.h>
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include "main.h"
 #include "lcd.h"
-#include "sous-vide.h"
-
-volatile uint16_t  arPeriods[MAX_PERIODS];
-volatile uint16_t *pPeriods;
-volatile uint8_t   iPeriod;
-volatile uint16_t  iTime;
-volatile uint8_t   iTick;
-volatile uint16_t  iTemp;
-volatile uint16_t  iTempRead;
-volatile uint16_t  iTempSet;
-volatile uint8_t   iButton;                // storing pressed button 
-volatile uint8_t   iButtonOld;                // storing pressed button 
-volatile uint8_t iStatus;
-uint16_t iTempOffset = 0;           // storing sensor offset
-
-
-/****************************************************************************
- main program
- ****************************************************************************/
-int main (void) {
-    // declare variables 
-
-    char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting 
-    
-volatile uint8_t iHour;
-volatile uint8_t iMin;
-volatile uint8_t iSec;
-
-    // setup registers 
-    fSetup();
-
-    // default state is halted
-    iStatus |= STATUS_HALT;
-
-iPeriod = iTempOffset;
-
-    // run main program 
-    while (1) {
-
-/*
-        if (iButton == BUTTON_TIMER_RUN) {
-            if (iStatus & STATUS_TIMER) {
-                if (iStatus & STATUS_TIMER_RUN) {
-                    iStatus &= ~(STATUS_TIMER_RUN);
-                } else {
-                    iStatus |= STATUS_TIMER_RUN;
-                }
-            }
-        }
-        if (iButton == BUTTON_TIMER_RST) {
-            if (iStatus & STATUS_TIMER) {
-                if (iStatus & STATUS_TIMER_RUN) {
-                } else {
-                    iSec = 0;
-                    iMin = 0;
-                    iHour = 0;
-                }
-            }
-        }
-        if (iButton == BUTTON_HALT) {
-            if (iStatus & STATUS_HALT) {
-                iStatus &= ~(STATUS_HALT);
-            } else {
-                iStatus |= STATUS_HALT;
-            }
-        }
-
-*/
-
-        if (iStatus & STATUS_ADC) {
-            if (iTick==10) {
-                iTick = 0;
-                iTemp = iTempRead / 10;
-                iTempRead = 0;
-            }
-            
-            if (iStatus & STATUS_HALT) {
-                iStatus &= ~(STATUS_PUMP);
-                iStatus &= ~(STATUS_HEATER);
-                iStatus &= ~(STATUS_TIMER);
-            } else {
-                // turn on the pump
-                iStatus |= STATUS_PUMP;
-            
-                // if temp is higher than set temp, switch off the heater
-                if (iTemp > iTempSet) {
-                    iStatus &= ~(STATUS_HEATER);
-                }
-                // if temp is lower than set temp, switch on the heater
-                if (iTemp < iTempSet) {
-                    iStatus |= STATUS_HEATER;
-                }
-
-                // turn on the timer (but do not run it)
-                iStatus |= STATUS_TIMER;
-            }
-
-            // if pump status = 1, switch on the output else switch off
-            if (iStatus & STATUS_PUMP) {
-                OUT_PORT |= OUT_PUMP;
-            } else {
-                OUT_PORT &= ~(OUT_PUMP);
-            }
-           
-            // if heater status = 1, switch on the output else switch off
-            if (iStatus & STATUS_HEATER) {
-                OUT_PORT |= OUT_HEATER;
-            } else {
-                OUT_PORT &= ~(OUT_HEATER);
-            }
-            
-            // if timer status = 1, record the time
-            if (iStatus & STATUS_TIMER) {
-                OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
-                OUT_PORT |= OUT_LED_GREEN;	    // turn on green led
-                // if 10 ticks are passed (iTick reset to 0), 1 second passed
-                if (iTick == 0) {
-                    iSec++;
-                    if (iSec > 59) {
-                        iSec = 0;
-                        iMin++;
-                        if (iMin > 59) {
-                            iMin = 0;
-                            iHour++;
-                            if (iHour > 99) {
-                                iHour = 0;
-                            }
-                        }
-                    }
-                }
-            } else {
-                OUT_PORT &= ~(OUT_LED_GREEN);    // turn off green led
-                OUT_PORT |= OUT_LED_RED;         // turn on green led
-            }
-
-            // update the display
-            sprintf(_arLCDline, "Ts%02d.%02d 00:00 P%01x",
-                (iTempSet >> 2),
-                ((iTempSet & 0x0003) * 25),
-		iPeriod);
-            lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
-            sprintf(_arLCDline, "Tr%02d.%02d %02d:%02d:%02d",
-                (iTemp >> 2),
-                ((iTemp & 0x0003) * 25),
-                iHour,
-                iMin,
-                iSec);
-            lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
-
-            // set the ADC status back to 0
-            iStatus &= ~(STATUS_ADC);
-        }
-  }
-  return 0;
-}
-
-/****************************************************************************
- timer1 interrupt routine
- occurs when timer reaches TOP as set in OCR1A
- ****************************************************************************/
-ISR(TIMER1_COMPA_vect) {
-    KBD_PORT |= BUTTON_LED;         // set back LED on
-    iTick++;                        // add tick
-    iButton = (KBD ^ 0x7f);         // read keyboard
-    if (iButton != iButtonOld) {    // new button pressed
-        iStatus |= STATUS_BUTTON;   // set keyboard status to 1
-    }
-    ADCSRA |= _BV(ADSC);            // start capture 
-}
-
-/****************************************************************************
- analog conversion interrupt routine
- occurs when analog conversion is completed
- ****************************************************************************/
-ISR(ADC_vect) {
-    iTempRead += ADC - iTempOffset; // read ADC 
-    iStatus |= STATUS_ADC;          // set ADC status to 1
-    KBD_PORT &= ~(BUTTON_LED);      // set back LED off
-}
+#include "config.h"
 
 /****************************************************************************
  setup routine
@@ -217,31 +40,31 @@ ISR(ADC_vect) {
 uint8_t fSetup (void) {
     uint8_t _i;                         // loop variable
 
-    cli();                              // disable interrupts 
+    cli();                              // disable interrupts
 
     // setup keyboard
     KBD_DIR  = 0x80;                    // enable keyboard pins for input
     KBD_PORT = 0x7f;                    // enable pull-ups for row inputs
 
     // setup output
-    OUT_DIR = 0x3e;                     // enable PORTC pins for output 
+    OUT_DIR = 0x3e;                     // enable PORTC pins for output
     DIDR0 = 0x01;			            // disconnect ADC0 (PORTC.1) from IO
 
     // setup timer
-    TCCR1B = _BV(WGM12) |               // CTC mode, top = OCR1A 
-             _BV(CS10) | _BV(CS12);     // 1024 prescale 
-    TIMSK1 = _BV(OCIE1A);               // enable timer1 interrupt 
+    TCCR1B = _BV(WGM12) |               // CTC mode, top = OCR1A
+             _BV(CS10) | _BV(CS12);     // 1024 prescale
+    TIMSK1 = _BV(OCIE1A);               // enable timer1 interrupt
     OCR1A = SAMPLE_FREQUENCY;           // top is calculated to be 1 sec
 
     // setup ADC
-    ADCSRA = _BV(ADIE) |                // enable adc interrupt 
-            _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);	// 128 prescale 
-    ADMUX = _BV(REFS1) | _BV(REFS0);    // internal 2.56V reference 
-    ACSR  = _BV(ACD);                   // disable analog comparator 
-    ADCSRA |= _BV(ADEN);                // enable ADC 
+    ADCSRA = _BV(ADIE) |                // enable adc interrupt
+            _BV(ADPS2) | _BV(ADPS1) | _BV(ADPS0);	// 128 prescale
+    ADMUX = _BV(REFS1) | _BV(REFS0);    // internal 2.56V reference
+    ACSR  = _BV(ACD);                   // disable analog comparator
+    ADCSRA |= _BV(ADEN);                // enable ADC
 
     // setup display
-    lcd_init(LCD_DISP_ON_CURSOR);       // enable display 
+    lcd_init(LCD_DISP_ON_CURSOR);       // enable display
     DDRD |= 0x80;			            // enable pin for background lighting
     PORTD |= 0x80;		            	// turn on background lighting
 
@@ -262,13 +85,11 @@ uint8_t fSetup (void) {
     }
     lcd_command(_BV(LCD_CGRAM));
 
-    pPeriods = arPeriods;
-
     // read EEPROM
-    iTempOffset = eeprom_read_word((uint16_t*)0);
+//    iTempOffset = eeprom_read_word((uint16_t*)0);
 //    eeprom_read_block((void*)&arPeriods, (const void*)2, 32);
 
-    sei();                              // enable interrupts 
+    sei();                              // enable interrupts
 
     return 0;
 }
@@ -276,11 +97,10 @@ uint8_t fSetup (void) {
 /****************************************************************************
  Add period routine
  ****************************************************************************/
-uint8_t fAddPeriod () {
+uint8_t fAddPeriod (uint16_t *arPeriods, uint8_t iPeriod) {
 
     if (iPeriod < (MAX_PERIODS/2)) {
-        iPeriod++;
-        fEditPeriod();
+        fEditPeriod(arPeriods, ++iPeriod);
     } else {
         return 1;
     }
@@ -290,21 +110,21 @@ uint8_t fAddPeriod () {
 /****************************************************************************
  Edit period routine
  ****************************************************************************/
-uint8_t fEditPeriod () {
+uint8_t fEditPeriod(uint16_t *arPeriods, uint8_t iPeriod) {
 
-    uint16_t _iPeriodTemp = *(pPeriods+iPeriod + 0);
-    uint16_t _iPeriodTime = *(pPeriods+iPeriod + (MAX_PERIODS/2));
+    uint16_t _iPeriodTemp = *(arPeriods+iPeriod + 0);
+    uint16_t _iPeriodTime = *(arPeriods+iPeriod + (MAX_PERIODS/2));
 
-    char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting 
-    uint8_t _iCursurPos = 2;             // storing cursor position 
+    char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
+    uint8_t _iCursurPos = 2;             // storing cursor position
 
     if (iStatus & STATUS_BUTTON) {
-        // BUTTON_ARROW_LEFT and BUTTON_ARROW_RIGHT move the cursor 
+        // BUTTON_ARROW_LEFT and BUTTON_ARROW_RIGHT move the cursor
         // position: pos2=decimals, pos3=single digits, pos5=fraction
-        // (pos 4 is decimal point on the display) 
-        // BUTTON_ARROW_UP and BUTTON_ARROW_DOWN change the value of 
+        // (pos 4 is decimal point on the display)
+        // BUTTON_ARROW_UP and BUTTON_ARROW_DOWN change the value of
         // the number the cursor is at. There are 4 steps in a single
-        // degree. 
+        // degree.
 
         // 0000000001111111
         // 1234567890123456
@@ -418,13 +238,9 @@ uint8_t fEditPeriod () {
             (_iPeriodTime/3600),
             (_iPeriodTime/60));
         lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
-        
-        iButtonOld = iButton;   // the button has been processed 
+
+        iButtonOld = iButton;   // the button has been processed
     }
 
      return 0;
 }
-
-
-
-

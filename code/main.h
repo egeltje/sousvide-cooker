@@ -1,5 +1,5 @@
-#ifndef SOUSVIDE_H
-#define SOUSVIDE_H
+#ifndef MAIN_H
+#define MAIN_H
 /* BSD 2-Clause license:
  *
  * Copyright (c) 2013, Erwin Kooi
@@ -27,6 +27,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+volatile uint16_t  iTime;
+volatile uint8_t   iTick;
+volatile uint16_t  iTemp;
+volatile uint16_t  iTempRead;
+volatile uint16_t  iTempSet;
+volatile uint8_t   iButton;                // storing pressed button
+volatile uint8_t   iButtonOld;                // storing pressed button
+volatile uint8_t iStatus;
+
 #define SAMPLE_FREQUENCY	((1000000 / 1024) / 10)
 //                          ((F_CPU / CPU_PRESCALER / Hz)
 
@@ -35,6 +44,7 @@
 #define STATUS_HEATER       0x04    /* status bit for the heater */
 #define STATUS_COOLER       0x08    /* status bit for the cooler */
 #define STATUS_TIMER        0x10    /* status bit for the timer */
+#define STATUS_TICK         0x20    /* status bit for the tick */
 #define STATUS_BUTTON       0x40    /* status bit for the keyboard */
 #define STATUS_ADC          0x80    /* status bit for the AD converter */
 
@@ -60,8 +70,4 @@
 
 #define MAX_PERIODS         32
 
-extern uint8_t fSetup();
-extern uint8_t fEditPeriod();
-extern uint8_t fAddPeriod();
-
-#endif //SOUSVIDE_H
+#endif //MAIN_H
