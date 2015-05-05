@@ -32,28 +32,36 @@
 
 #define STATUS_HALT         0x01    /* status bit for halted operation */
 #define STATUS_PUMP         0x02    /* status bit for the pump */
-#define STATUS_HEATER       0x04    /* status bit for the heaC 8?ter */
-#define STATUS_TIMER        0x08    /* status bit for the timer */
-#define STATUS_TIMER_RUN    0x10    /* status bit for the running timer */
+#define STATUS_HEATER       0x04    /* status bit for the heater */
+#define STATUS_COOLER       0x08    /* status bit for the cooler */
+#define STATUS_TIMER        0x10    /* status bit for the timer */
+#define STATUS_BUTTON       0x40    /* status bit for the keyboard */
 #define STATUS_ADC          0x80    /* status bit for the AD converter */
 
 #define KBD_PORT            PORTB   /* the KBD is attached to IO Port B */
 #define KBD_DIR             DDRB
 #define KBD                 PINB
-#define BUTTON_TIMER_RUN    0x01    /* pin D0 */
-#define BUTTON_TIMER_RST    0x02    /* pin D1 */
-#define BUTTON_HALT         0x04    /* pin D2 */
-#define BUTTON_ARROW_RIGHT  0x08    /* pin D3 */
-#define BUTTON_ARROW_UP     0x10    /* pin D4 */
-#define BUTTON_ARROW_DOWN   0x20    /* pin D5 */
-#define BUTTON_ARROW_LEFT   0x40    /* pin D6 */
+#define BUTTON_TIMER_RUN    0x01    /* pin B0 */
+#define BUTTON_TIMER_RST    0x02    /* pin B1 */
+#define BUTTON_HALT         0x04    /* pin B2 */
+#define BUTTON_ARROW_RIGHT  0x08    /* pin B3 */
+#define BUTTON_ARROW_UP     0x10    /* pin B4 */
+#define BUTTON_ARROW_DOWN   0x20    /* pin B5 */
+#define BUTTON_ARROW_LEFT   0x40    /* pin B6 */
+#define BUTTON_LED          0x80    /* pin B7 */
 
 #define OUT_PORT            PORTC   /* the output is attached to IO Port C */
 #define OUT_DIR             DDRC
-#define OUT_PUMP            0x02    /* pin B0 */
-#define OUT_HEATER          0x04    /* pin B1 */
-#define OUT_AUX0            0x08    /* pin B2 */
-#define OUT_LED_GREEN       0x10    /* pin B3 */
-#define OUT_LED_RED         0x20    /* pin B4 */
+#define OUT_PUMP            0x02    /* pin C0 */
+#define OUT_HEATER          0x04    /* pin C1 */
+#define OUT_AUX0            0x08    /* pin C2 */
+#define OUT_LED_GREEN       0x10    /* pin C3 */
+#define OUT_LED_RED         0x20    /* pin C4 */
+
+#define MAX_PERIODS         32
+
+extern uint8_t fSetup();
+extern uint8_t fEditPeriod();
+extern uint8_t fAddPeriod();
 
 #endif //SOUSVIDE_H
