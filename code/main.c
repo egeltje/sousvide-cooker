@@ -40,7 +40,7 @@
 int main (void) {
     // declare variables
 
-	uint16_t _arPeriods[MAX_PERIODS] = {250,160,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,120,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	uint16_t _arPeriods[MAX_PERIODS * 2] = {250,160,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,120,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	uint8_t  _iPeriod = 0;		// storing current period
 	uint8_t  _iTick = 0;		// counting interrupt ticks
 	uint16_t _iTime = 0;		// counting time in seconds
@@ -54,71 +54,50 @@ int main (void) {
 
     // default state is halted
     iStatus |= STATUS_RUN;
-    iStatus |= STATUS_TIMER;
 
     // run main program
     while (1) {
-
 	    if (iStatus & STATUS_TICK) {
 			_iTick++; // if 10 ticks are passed (iTick reset to 0), 1 second passed
-			if (_iTick > 9) _iTick = 0;
+			if (_iTick >= 10) {
+				_iTick = 0;
+				if (iStatus & STATUS_RUN) {
+					_iTime++;
+				}
+			}
 			iStatus &= ~(STATUS_TICK);		// TICK event has been dealt with
+	    }
+		if (iStatus & STATUS_ADC) {
+			if (_iTick == 0) {
+				_iTemp = iTempRead / 10;
+				iTempRead = 0;
+			}
+			iStatus &= ~(STATUS_ADC);		// ADC event has been dealt with
 		}
-	    if (iStatus & STATUS_ADC) {
-   			if (_iTick == 0) {
-  				_iTemp = iTempRead / 10;
-   				iTempRead = 0;
-   			}
-   			iStatus &= ~(STATUS_ADC);		// ADC event has been dealt with
-   		}
-/*	    if (iStatus & STATUS_BUTTON) {
+	    if (iStatus & STATUS_BUTTON) {
 	    	if (iButton != _iButtonOld) {    // new button pressed
-
-	    				if (iButton == BUTTON_TIMER_RUN) {
-	    					if (iStatus & STATUS_TIMER) {
-	    						if (iStatus & STATUS_TIMER_RUN) {
-	    							iStatus &= ~(STATUS_TIMER_RUN);
-	    						} else {
-	    							iStatus |= STATUS_TIMER_RUN;
-	    						}
-	    					}
-	    				}
-	    				if (iButton == BUTTON_TIMER_RST) {
-	    					if (iStatus & STATUS_TIMER) {
-	    						if (iStatus & STATUS_TIMER_RUN) {
-	    						} else {
-	    							iSec = 0;
-	    							iMin = 0;
-	    							iHour = 0;
-	    						}
-	    					}
-	    				}
-	    				if (iButton == BUTTON_HALT) {
-	    					if (iStatus & STATUS_HALT) {
-	    						iStatus &= ~(STATUS_HALT);
-	    					} else {
-	    						iStatus |= STATUS_HALT;
-	    					}
-	    				}
-
-
+				if (iButton & BUTTON_RUN) {
+					if (iStatus & STATUS_RUN) {
+						iStatus &= ~(STATUS_RUN);
+					} else {
+						iStatus |= STATUS_RUN;
+					}
+				}
 	    		_iButtonOld = iButton;
 	    	}
 	    	iStatus &= ~(STATUS_BUTTON);	// BUTTON event has been dealt with
 	    }
-*/
+
 		if (iStatus & STATUS_RUN) {
 			OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
 			OUT_PORT |= OUT_LED_GREEN;	    // turn on green led
 
-			if (_iTick == 0) {
-				_iTime++;
-			}
-			if (_iTime >= _arPeriods[_iPeriod + MAX_PERIODS/ 2]) {
+			if (_iTime >= _arPeriods[_iPeriod + MAX_PERIODS]) {
 				_iPeriod++;
 				_iTime = 0;
-				if (_arPeriods[_iPeriod + MAX_PERIODS / 2] == 0) {
+				if (_arPeriods[_iPeriod + MAX_PERIODS] == 0) {
 					iStatus &= ~(STATUS_RUN);
+					_iPeriod = 0;
 				}
 			}
 			// turn on the pump
@@ -139,19 +118,36 @@ int main (void) {
 				iStatus &= ~(STATUS_HEATER);
 				iStatus &= ~(STATUS_COOLER);
 			}
-
-			// if pump status = 1, switch on the output else switch off
-			if (iStatus & STATUS_PUMP) {
-				OUT_PORT |= OUT_PUMP;
-			} else {
-				OUT_PORT &= ~(OUT_PUMP);
-			}
 		} else {
+			OUT_PORT &= ~(OUT_LED_GREEN);    // turn off green led
+			OUT_PORT |= OUT_LED_RED;         // turn on green led
 			iStatus &= ~(STATUS_PUMP);
 			iStatus &= ~(STATUS_HEATER);
 			iStatus &= ~(STATUS_COOLER);
 		}
 
+		// update the display
+		sprintf(_arLCDline, "  %02d.%02d %02d.%02d P%01x",
+			(_arPeriods[_iPeriod] >> 2),
+			((_arPeriods[_iPeriod] & 0x0003) * 25),
+			_arPeriods[_iPeriod + MAX_PERIODS] / 3600,
+			_arPeriods[_iPeriod + MAX_PERIODS] / 60,
+			_iPeriod);
+		lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+		sprintf(_arLCDline, "  %02d.%02d %02d:%02d:%02d",
+			(_iTemp >> 2),
+			((_iTemp & 0x0003) * 25),
+			(_iTime / 3600),
+			(_iTime / 60) % 60,
+			(_iTime) % 60);
+		lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
+
+		// if pump status = 1, switch on the output else switch off
+		if (iStatus & STATUS_PUMP) {
+			OUT_PORT |= OUT_PUMP;
+		} else {
+			OUT_PORT &= ~(OUT_PUMP);
+		}
 		// if heater status = 1, switch on the output else switch off
 		if (iStatus & STATUS_HEATER) {
 			OUT_PORT |= OUT_HEATER;
@@ -164,28 +160,8 @@ int main (void) {
 		} else {
 			OUT_PORT &= ~(OUT_COOLER);
 		}
-	} else {
-		OUT_PORT &= ~(OUT_LED_GREEN);    // turn off green led
-		OUT_PORT |= OUT_LED_RED;         // turn on green led
 	}
 
-
-		// update the display
-		sprintf(_arLCDline, " %02d.%02dC %02d.%02d P%01x",
-			(_arPeriods[_iPeriod] >> 2),
-			((_arPeriods[_iPeriod] & 0x0003) * 25),
-			_arPeriods[_iPeriod + MAX_PERIODS / 2] / 3600,
-			_arPeriods[_iPeriod + MAX_PERIODS / 2] / 60,
-			_iPeriod);
-		lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
-		sprintf(_arLCDline, " %02d.%02dC %02d:%02d:%02d",
-			(_iTemp >> 2),
-			((_iTemp & 0x0003) * 25),
-			(_iTime / 3600),
-			(_iTime / 60) % 60,
-			(_iTime) % 60);
-		lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
-	}
     return 0;
 }
 
@@ -195,7 +171,7 @@ int main (void) {
  ****************************************************************************/
 ISR(TIMER1_COMPA_vect) {
     KBD_PORT |= BUTTON_LED;         // switch back LED on
-    iStatus |= STATUS_TICK;         // set keyboard status to 1
+    iStatus |= STATUS_TICK;         // set interrupt tick
     iButton = (KBD ^ 0x7f);         // read keyboard
     if (iButton != 0) {
     	iStatus |= STATUS_BUTTON;
@@ -208,8 +184,7 @@ ISR(TIMER1_COMPA_vect) {
  occurs when analog conversion is completed
  ****************************************************************************/
 ISR(ADC_vect) {
-//    iTempRead += ADC; // read ADC
+    iTempRead += ADC; // read ADC
     iStatus |= STATUS_ADC;          // set ADC status to 1
     KBD_PORT &= ~(BUTTON_LED);      // switch back LED off
 }
-

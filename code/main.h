@@ -32,14 +32,14 @@
 #define STATUS_PUMP         0x02    // status bit for the pump
 #define STATUS_HEATER       0x04    // status bit for the heater
 #define STATUS_COOLER       0x08    // status bit for the cooler
-#define STATUS_TICK         0x20    // status bit for the tick
+#define STATUS_TICK         0x10    // status bit for the tick
 #define STATUS_BUTTON       0x40    // status bit for the keyboard
 #define STATUS_ADC          0x80    // status bit for the AD converter
 
 #define KBD_PORT            PORTB   // the KBD is attached to IO Port B
 #define KBD_DIR             DDRB
 #define KBD                 PINB
-#define BUTTON_TIMER_RUN    0x01    // pin B0
+#define BUTTON_RUN          0x01    // pin B0
 #define BUTTON_TIMER_RST    0x02    // pin B1
 #define BUTTON_HALT         0x04    // pin B2
 #define BUTTON_ARROW_RIGHT  0x08    // pin B3
@@ -56,7 +56,7 @@
 #define OUT_LED_GREEN       0x10    // pin C3
 #define OUT_LED_RED         0x20    // pin C4
 
-#define MAX_PERIODS         32
+#define MAX_PERIODS         16
 
 volatile uint8_t   iStatus;			// storing system states
 volatile uint16_t  iTempRead;		// storing read temperature

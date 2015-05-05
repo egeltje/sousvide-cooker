@@ -34,5 +34,4 @@ extern uint8_t fSetup();
 extern uint8_t fConfigPeriodEdit(uint16_t *arPeriods, uint8_t iPeriod);
 extern uint8_t fConfigPeriodAdd(uint16_t *arPeriods, uint8_t iPeriod);
 
-
 #endif /* CONFIG_H_ */
