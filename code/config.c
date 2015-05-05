@@ -97,10 +97,10 @@ uint8_t fSetup (void) {
 /****************************************************************************
  Add period routine
  ****************************************************************************/
-uint8_t fAddPeriod (uint16_t *arPeriods, uint8_t iPeriod) {
+uint8_t fConfigPeriodAdd (uint16_t *arPeriods, uint8_t iPeriod) {
 
     if (iPeriod < (MAX_PERIODS/2)) {
-        fEditPeriod(arPeriods, ++iPeriod);
+        fConfigPeriodEdit(arPeriods, ++iPeriod);
     } else {
         return 1;
     }
@@ -110,7 +110,7 @@ uint8_t fAddPeriod (uint16_t *arPeriods, uint8_t iPeriod) {
 /****************************************************************************
  Edit period routine
  ****************************************************************************/
-uint8_t fEditPeriod(uint16_t *arPeriods, uint8_t iPeriod) {
+uint8_t fConfigPeriodEdit(uint16_t *arPeriods, uint8_t iPeriod) {
 
     uint16_t _iPeriodTemp = *(arPeriods+iPeriod + 0);
     uint16_t _iPeriodTime = *(arPeriods+iPeriod + (MAX_PERIODS/2));
@@ -125,14 +125,6 @@ uint8_t fEditPeriod(uint16_t *arPeriods, uint8_t iPeriod) {
         // BUTTON_ARROW_UP and BUTTON_ARROW_DOWN change the value of
         // the number the cursor is at. There are 4 steps in a single
         // degree.
-
-        // 0000000001111111
-        // 1234567890123456
-        // ----------------
-        // T00.00 t00:00  x
-        //  00.00  00:00:00
-        // ----------------
-
         if (iButton == BUTTON_ARROW_LEFT) {
             if (_iCursurPos == 3) {      // 10    digit temp
                 _iCursurPos = 2;
@@ -238,9 +230,6 @@ uint8_t fEditPeriod(uint16_t *arPeriods, uint8_t iPeriod) {
             (_iPeriodTime/3600),
             (_iPeriodTime/60));
         lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
-
-        iButtonOld = iButton;   // the button has been processed
     }
-
      return 0;
 }
