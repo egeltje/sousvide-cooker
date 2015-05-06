@@ -40,8 +40,8 @@
 #define KBD_DIR             DDRB
 #define KBD                 PINB
 #define BUTTON_RUN          0x01    // pin B0
-#define BUTTON_TIMER_RST    0x02    // pin B1
-#define BUTTON_HALT         0x04    // pin B2
+#define BUTTON_NULL         0x02    // pin B1
+#define BUTTON_CONFIG       0x04    // pin B2
 #define BUTTON_ARROW_RIGHT  0x08    // pin B3
 #define BUTTON_ARROW_UP     0x10    // pin B4
 #define BUTTON_ARROW_DOWN   0x20    // pin B5
@@ -58,8 +58,18 @@
 
 #define MAX_PERIODS         16
 
-volatile uint16_t iTempRead;		// storing read temperature
+	struct calibration {
+		uint16_t ice;
+		uint16_t steam;
+	};
+
+	struct periods {
+		uint16_t temp;
+		uint16_t time;
+	};
+
+	volatile uint16_t iTempRead;		// storing read temperature
 volatile uint8_t  iButton;			// storing system states
-volatile uint8_t  iTick = 0;		// counting interrupt ticks
+volatile uint8_t  iTick;			// counting interrupt ticks
 
 #endif //MAIN_H

@@ -97,10 +97,18 @@ uint8_t fSetup (void) {
 /****************************************************************************
  Add period routine
  ****************************************************************************/
-uint8_t fConfigPeriodAdd (uint16_t *arPeriods, uint8_t iPeriod) {
+uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 
-    if (iPeriod < (MAX_PERIODS/2)) {
-        fConfigPeriodEdit(arPeriods, ++iPeriod);
+	return 0;
+}
+
+/****************************************************************************
+ Add period routine
+ ****************************************************************************/
+uint8_t fConfigPeriodAdd (struct periods *stPeriods, uint8_t iPeriod) {
+
+    if (iPeriod < MAX_PERIODS) {
+        fConfigPeriodEdit(&stPeriods, iPeriod++);
     } else {
         return 1;
     }
@@ -110,116 +118,120 @@ uint8_t fConfigPeriodAdd (uint16_t *arPeriods, uint8_t iPeriod) {
 /****************************************************************************
  Edit period routine
  ****************************************************************************/
-uint8_t fConfigPeriodEdit(uint16_t *arPeriods, uint8_t iPeriod) {
+uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 
-    uint16_t _iPeriodTemp = *(arPeriods+iPeriod + 0);
-    uint16_t _iPeriodTime = *(arPeriods+iPeriod + (MAX_PERIODS/2));
+    uint16_t _iPeriodTemp = stPeriods[iPeriod].temp;
+    uint16_t _iPeriodTime = stPeriods[iPeriod].time;
 
     char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
     uint8_t _iCursurPos = 2;             // storing cursor position
+    uint8_t _iButtonOld = 0;
 
-    if (iStatus & STATUS_BUTTON) {
-        // BUTTON_ARROW_LEFT and BUTTON_ARROW_RIGHT move the cursor
-        // position: pos2=decimals, pos3=single digits, pos5=fraction
-        // (pos 4 is decimal point on the display)
-        // BUTTON_ARROW_UP and BUTTON_ARROW_DOWN change the value of
-        // the number the cursor is at. There are 4 steps in a single
-        // degree.
-        if (iButton == BUTTON_ARROW_LEFT) {
-            if (_iCursurPos == 3) {      // 10    digit temp
-                _iCursurPos = 2;
-            }
-            if (_iCursurPos == 5) {      //  1    digit temp
-                _iCursurPos = 3;
-            }
-            if (_iCursurPos == 9) {      //   .25 digit temp
-                _iCursurPos = 5;
-            }
-            if (_iCursurPos == 10) {     // 10    digit hour
-                _iCursurPos = 9;
-            }
-            if (_iCursurPos == 12) {     //  1    digit hour
-                _iCursurPos = 10;
-            }
-            if (_iCursurPos == 13) {     //   :10 digit minute
-                _iCursurPos = 12;
-            }
-            if (_iCursurPos == 16) {     //   :01 digit minute
-                _iCursurPos = 13;
-            }
-        }
-        if (iButton == BUTTON_ARROW_RIGHT) {
-            if (_iCursurPos == 16) {
-                return 0;
-            }
-            if (_iCursurPos == 13) {     //   :01 digit minute
-                _iCursurPos = 16;
-            }
-            if (_iCursurPos == 12) {     //   :10 digit minute
-                _iCursurPos = 13;
-            }
-            if (_iCursurPos == 10) {     //  1    digit hour
-                _iCursurPos = 12;
-            }
-            if (_iCursurPos == 9) {      // 10    digit hour
-                _iCursurPos = 10;
-            }
-            if (_iCursurPos == 5) {      //   .25 digit temp
-                _iCursurPos = 9;
-            }
-            if (_iCursurPos == 3) {      //  1    digit temp
-                _iCursurPos = 5;
-            }
-            if (_iCursurPos == 2) {      // 10    digit temp
-                _iCursurPos = 3;
-            }
-        }
-        if (iButton == BUTTON_ARROW_DOWN) {
-            if (_iCursurPos == 2) {
-                if (_iPeriodTemp >= 40) _iPeriodTemp -= 40;
-            }
-            if (_iCursurPos == 3) {
-                if (_iPeriodTemp >= 4) _iPeriodTemp -= 4;
-            }
-            if (_iCursurPos == 5) {
-                if (_iPeriodTemp >= 1) _iPeriodTemp -= 1;
-            }
-            if (_iCursurPos == 9) {
-                if (_iPeriodTime >= 36001) _iPeriodTime -= 36000;
-            }
-            if (_iCursurPos == 10) {
-                if (_iPeriodTime >= 3601) _iPeriodTime -= 3600;
-            }
-            if (_iCursurPos == 12) {
-                if (_iPeriodTime >= 601) _iPeriodTime -= 600;
-            }
-            if (_iCursurPos == 13) {
-                if (_iPeriodTime >= 61) _iPeriodTime -= 60;
-            }
-        }
-        if (iButton == BUTTON_ARROW_UP) {
-            if (_iCursurPos == 2) {
-                if (_iPeriodTemp <= 359) _iPeriodTemp += 40;
-            }
-            if (_iCursurPos == 3) {
-                if (_iPeriodTemp <= 395) _iPeriodTemp += 4;
-            }
-            if (_iCursurPos == 5) {
-                if (_iPeriodTemp <= 398) _iPeriodTemp += 1;
-            }
-            if (_iCursurPos == 9) {
-                if (_iPeriodTime <= 7200) _iPeriodTime += 36000;
-            }
-            if (_iCursurPos == 10) {
-                if (_iPeriodTime <= 39600) _iPeriodTime += 3600;
-            }
-            if (_iCursurPos == 12) {
-                if (_iPeriodTime <= 42600) _iPeriodTime += 600;
-            }
-            if (_iCursurPos == 13) {
-                if (_iPeriodTime <= 42140) _iPeriodTime += 60;
-            }
-        }
+    if (iButton != 0) {
+    	if (iButton != _iButtonOld) {
+			// BUTTON_ARROW_LEFT and BUTTON_ARROW_RIGHT move the cursor
+			// position: pos2=decimals, pos3=single digits, pos5=fraction
+			// (pos 4 is decimal point on the display)
+			// BUTTON_ARROW_UP and BUTTON_ARROW_DOWN change the value of
+			// the number the cursor is at. There are 4 steps in a single
+			// degree.
+			if (iButton == BUTTON_ARROW_LEFT) {
+				if (_iCursurPos == 3) {      // 10    digit temp
+					_iCursurPos = 2;
+				}
+				if (_iCursurPos == 5) {      //  1    digit temp
+					_iCursurPos = 3;
+				}
+				if (_iCursurPos == 9) {      //   .25 digit temp
+					_iCursurPos = 5;
+				}
+				if (_iCursurPos == 10) {     // 10    digit hour
+					_iCursurPos = 9;
+				}
+				if (_iCursurPos == 12) {     //  1    digit hour
+					_iCursurPos = 10;
+				}
+				if (_iCursurPos == 13) {     //   :10 digit minute
+					_iCursurPos = 12;
+				}
+				if (_iCursurPos == 16) {     //   :01 digit minute
+					_iCursurPos = 13;
+				}
+			}
+			if (iButton == BUTTON_ARROW_RIGHT) {
+				if (_iCursurPos == 16) {
+					return 0;
+				}
+				if (_iCursurPos == 13) {     //   :01 digit minute
+					_iCursurPos = 16;
+				}
+				if (_iCursurPos == 12) {     //   :10 digit minute
+					_iCursurPos = 13;
+				}
+				if (_iCursurPos == 10) {     //  1    digit hour
+					_iCursurPos = 12;
+				}
+				if (_iCursurPos == 9) {      // 10    digit hour
+					_iCursurPos = 10;
+				}
+				if (_iCursurPos == 5) {      //   .25 digit temp
+					_iCursurPos = 9;
+				}
+				if (_iCursurPos == 3) {      //  1    digit temp
+					_iCursurPos = 5;
+				}
+				if (_iCursurPos == 2) {      // 10    digit temp
+					_iCursurPos = 3;
+				}
+			}
+			if (iButton == BUTTON_ARROW_DOWN) {
+				if (_iCursurPos == 2) {
+					if (_iPeriodTemp >= 40) _iPeriodTemp -= 40;
+				}
+				if (_iCursurPos == 3) {
+					if (_iPeriodTemp >= 4) _iPeriodTemp -= 4;
+				}
+				if (_iCursurPos == 5) {
+					if (_iPeriodTemp >= 1) _iPeriodTemp -= 1;
+				}
+				if (_iCursurPos == 9) {
+					if (_iPeriodTime >= 36001) _iPeriodTime -= 36000;
+				}
+				if (_iCursurPos == 10) {
+					if (_iPeriodTime >= 3601) _iPeriodTime -= 3600;
+				}
+				if (_iCursurPos == 12) {
+					if (_iPeriodTime >= 601) _iPeriodTime -= 600;
+				}
+				if (_iCursurPos == 13) {
+					if (_iPeriodTime >= 61) _iPeriodTime -= 60;
+				}
+			}
+			if (iButton == BUTTON_ARROW_UP) {
+				if (_iCursurPos == 2) {
+					if (_iPeriodTemp <= 359) _iPeriodTemp += 40;
+				}
+				if (_iCursurPos == 3) {
+					if (_iPeriodTemp <= 395) _iPeriodTemp += 4;
+				}
+				if (_iCursurPos == 5) {
+					if (_iPeriodTemp <= 398) _iPeriodTemp += 1;
+				}
+				if (_iCursurPos == 9) {
+					if (_iPeriodTime <= 7200) _iPeriodTime += 36000;
+				}
+				if (_iCursurPos == 10) {
+					if (_iPeriodTime <= 39600) _iPeriodTime += 3600;
+				}
+				if (_iCursurPos == 12) {
+					if (_iPeriodTime <= 42600) _iPeriodTime += 600;
+				}
+				if (_iCursurPos == 13) {
+					if (_iPeriodTime <= 42140) _iPeriodTime += 60;
+				}
+			}
+			_iButtonOld = iButton;
+    	}
 
         // update the display
         sprintf(_arLCDline, "Edit period    %01x", iPeriod);

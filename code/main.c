@@ -38,10 +38,18 @@
  main program
  ****************************************************************************/
 int main (void) {
-    // declare variables
 
-	uint16_t _arPeriods[MAX_PERIODS * 2] = {250,160,0,0,0,0,0,0,0,0,0,0,0,0,0,0,60,120,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+	// declare variables
+	struct calibration _stCalibration;
+
+	struct periods _stPeriods[MAX_PERIODS];
 	uint8_t  _iPeriod = 0;		// storing current period
+
+_stPeriods[0].temp = 250;
+_stPeriods[0].time = 60;
+_stPeriods[1].temp = 16;
+_stPeriods[1].time = 120;
+
 	uint16_t _iTime = 0;		// counting time in seconds
 	uint16_t _iTemp = 0;		// counting temperature in
 	uint8_t  _iStatus;			// storing system states
@@ -52,9 +60,6 @@ int main (void) {
     // setup registers
     fSetup();
 
-    // default state is halted
-    _iStatus |= STATUS_RUN;
-
     // run main program
     while (1) {
 	    if (iButton != 0) {
@@ -64,6 +69,11 @@ int main (void) {
 						_iStatus &= ~(STATUS_RUN);
 					} else {
 						_iStatus |= STATUS_RUN;
+					}
+				}
+				if (iButton & BUTTON_CONFIG) {
+					if (!(_iStatus & STATUS_RUN)) {
+						fConfig(&_stPeriods, &_stCalibration);
 					}
 				}
 	    		_iButtonOld = iButton;
@@ -80,10 +90,10 @@ int main (void) {
 				OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
 				OUT_PORT |= OUT_LED_GREEN;	    // turn on green led
 
-				if (_iTime >= _arPeriods[_iPeriod + MAX_PERIODS]) {
+				if (_iTime >= _stPeriods[_iPeriod].time) {
 					_iPeriod++;
 					_iTime = 0;
-					if (_arPeriods[_iPeriod + MAX_PERIODS] == 0) {
+					if (_stPeriods[_iPeriod].time == 0) {
 						_iStatus &= ~(STATUS_RUN);
 						_iPeriod = 0;
 					}
@@ -92,17 +102,17 @@ int main (void) {
 				_iStatus |= STATUS_PUMP;
 
 				// if temp is higher than set temp, switch off the heater, switch on cooler
-				if (_iTemp > _arPeriods[_iPeriod]) {
+				if (_iTemp > _stPeriods[_iPeriod].temp) {
 					_iStatus &= ~(STATUS_HEATER);
 					_iStatus |= STATUS_COOLER;
 				}
 				// if temp is lower than set temp, switch on the heater, switch off cooler
-				if (_iTemp < _arPeriods[_iPeriod]) {
+				if (_iTemp < _stPeriods[_iPeriod].temp) {
 					_iStatus |= STATUS_HEATER;
 					_iStatus &= ~(STATUS_COOLER);
 				}
 				// if temp is set temp, switch off the heater, switch off cooler
-				if (_iTemp > _arPeriods[_iPeriod]) {
+				if (_iTemp == _stPeriods[_iPeriod].temp) {
 					_iStatus &= ~(STATUS_HEATER);
 					_iStatus &= ~(STATUS_COOLER);
 				}
@@ -113,23 +123,22 @@ int main (void) {
 				_iStatus &= ~(STATUS_HEATER);
 				_iStatus &= ~(STATUS_COOLER);
 			}
+			// update the display
+			sprintf(_arLCDline, "  %02d.%02d %02d.%02d P%01x",
+				(_stPeriods[_iPeriod].temp >> 2),
+				((_stPeriods[_iPeriod].temp & 0x0003) * 25),
+				_stPeriods[_iPeriod].time / 3600,
+				_stPeriods[_iPeriod].time / 60,
+				_iPeriod);
+			lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+			sprintf(_arLCDline, "  %02d.%02d %02d:%02d:%02d",
+				(_iTemp >> 2),
+				((_iTemp & 0x0003) * 25),
+				(_iTime / 3600),
+				(_iTime / 60) % 60,
+				(_iTime) % 60);
+			lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
 		}
-
-		// update the display
-		sprintf(_arLCDline, "  %02d.%02d %02d.%02d P%01x",
-			(_arPeriods[_iPeriod] >> 2),
-			((_arPeriods[_iPeriod] & 0x0003) * 25),
-			_arPeriods[_iPeriod + MAX_PERIODS] / 3600,
-			_arPeriods[_iPeriod + MAX_PERIODS] / 60,
-			_iPeriod);
-		lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
-		sprintf(_arLCDline, "  %02d.%02d %02d:%02d:%02d",
-			(_iTemp >> 2),
-			((_iTemp & 0x0003) * 25),
-			(_iTime / 3600),
-			(_iTime / 60) % 60,
-			(_iTime) % 60);
-		lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
 
 		// if pump status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_PUMP) {
