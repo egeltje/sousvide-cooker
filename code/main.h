@@ -58,8 +58,8 @@
 
 #define MAX_PERIODS         16
 
-volatile uint8_t   iStatus;			// storing system states
-volatile uint16_t  iTempRead;		// storing read temperature
-volatile uint8_t   iButton;			// storing system states
+volatile uint16_t iTempRead;		// storing read temperature
+volatile uint8_t  iButton;			// storing system states
+volatile uint8_t  iTick = 0;		// counting interrupt ticks
 
 #endif //MAIN_H
