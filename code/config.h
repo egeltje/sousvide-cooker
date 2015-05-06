@@ -32,7 +32,8 @@
 
 extern uint8_t fSetup();
 extern uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration);
-extern uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod);
-extern uint8_t fConfigPeriodAdd(struct periods *stPeriods, uint8_t iPeriod);
+extern uint8_t fConfigLoad (struct periods *stPeriods, struct calibration *stCalibration);
+extern uint8_t fConfigPeriodAdd (struct periods *stPeriods, uint8_t iPeriod);
+extern uint8_t fConfigPeriodEdit (struct periods *stPeriods, uint8_t iPeriod);
 
 #endif /* CONFIG_H_ */

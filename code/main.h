@@ -58,17 +58,17 @@
 
 #define MAX_PERIODS         16
 
-	struct calibration {
-		uint16_t ice;
-		uint16_t steam;
-	};
+struct calibration {
+	uint16_t ice;
+	uint16_t steam;
+};
 
-	struct periods {
-		uint16_t temp;
-		uint16_t time;
-	};
+struct periods {
+	uint16_t temp;
+	uint16_t time;
+};
 
-	volatile uint16_t iTempRead;		// storing read temperature
+volatile uint16_t iTempRead;		// storing read temperature
 volatile uint8_t  iButton;			// storing system states
 volatile uint8_t  iTick;			// counting interrupt ticks
 

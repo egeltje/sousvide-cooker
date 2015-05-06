@@ -43,12 +43,8 @@ int main (void) {
 	struct calibration _stCalibration;
 
 	struct periods _stPeriods[MAX_PERIODS];
+	struct periods *_pPeriods = &_stPeriods;
 	uint8_t  _iPeriod = 0;		// storing current period
-
-_stPeriods[0].temp = 250;
-_stPeriods[0].time = 60;
-_stPeriods[1].temp = 16;
-_stPeriods[1].time = 120;
 
 	uint16_t _iTime = 0;		// counting time in seconds
 	uint16_t _iTemp = 0;		// counting temperature in
@@ -73,7 +69,7 @@ _stPeriods[1].time = 120;
 				}
 				if (iButton & BUTTON_CONFIG) {
 					if (!(_iStatus & STATUS_RUN)) {
-						fConfig(&_stPeriods, &_stCalibration);
+						fConfigLoad(&_stPeriods, &_stCalibration);
 					}
 				}
 	    		_iButtonOld = iButton;
@@ -84,79 +80,90 @@ _stPeriods[1].time = 120;
 
 			_iTemp = iTempRead / 10;
 			iTempRead = 0;
+			if (_iTemp >= 400) _iTemp = 399;
 
 			if (_iStatus & STATUS_RUN) {
 				_iTime++;
-				OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
-				OUT_PORT |= OUT_LED_GREEN;	    // turn on green led
+			}
+		}
+		if (_iStatus & STATUS_RUN) {
+			OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
+			OUT_PORT |= OUT_LED_GREEN;	    // turn on green led
 
-				if (_iTime >= _stPeriods[_iPeriod].time) {
-					_iPeriod++;
-					_iTime = 0;
-					if (_stPeriods[_iPeriod].time == 0) {
-						_iStatus &= ~(STATUS_RUN);
-						_iPeriod = 0;
-					}
+			if (_iTime >= _stPeriods[_iPeriod].time) {
+				_iPeriod++;
+				_iTime = 0;
+				if (_stPeriods[_iPeriod].time == 0) {
+					_iStatus &= ~(STATUS_RUN);
+					_iPeriod = 0;
 				}
-				// turn on the pump
-				_iStatus |= STATUS_PUMP;
+			}
+			// turn on the pump
+			_iStatus |= STATUS_PUMP;
 
-				// if temp is higher than set temp, switch off the heater, switch on cooler
-				if (_iTemp > _stPeriods[_iPeriod].temp) {
-					_iStatus &= ~(STATUS_HEATER);
-					_iStatus |= STATUS_COOLER;
-				}
-				// if temp is lower than set temp, switch on the heater, switch off cooler
-				if (_iTemp < _stPeriods[_iPeriod].temp) {
-					_iStatus |= STATUS_HEATER;
-					_iStatus &= ~(STATUS_COOLER);
-				}
-				// if temp is set temp, switch off the heater, switch off cooler
-				if (_iTemp == _stPeriods[_iPeriod].temp) {
-					_iStatus &= ~(STATUS_HEATER);
-					_iStatus &= ~(STATUS_COOLER);
-				}
-			} else {
-				OUT_PORT &= ~(OUT_LED_GREEN);    // turn off green led
-				OUT_PORT |= OUT_LED_RED;         // turn on green led
-				_iStatus &= ~(STATUS_PUMP);
+			// if temp is higher than set temp, switch off the heater, switch on cooler
+			if (_iTemp > _stPeriods[_iPeriod].temp) {
+				_iStatus &= ~(STATUS_HEATER);
+				_iStatus |= STATUS_COOLER;
+			}
+			// if temp is lower than set temp, switch on the heater, switch off cooler
+			if (_iTemp < _stPeriods[_iPeriod].temp) {
+				_iStatus |= STATUS_HEATER;
+				_iStatus &= ~(STATUS_COOLER);
+			}
+			// if temp is set temp, switch off the heater, switch off cooler
+			if (_iTemp == _stPeriods[_iPeriod].temp) {
 				_iStatus &= ~(STATUS_HEATER);
 				_iStatus &= ~(STATUS_COOLER);
 			}
-			// update the display
-			sprintf(_arLCDline, "  %02d.%02d %02d.%02d P%01x",
-				(_stPeriods[_iPeriod].temp >> 2),
-				((_stPeriods[_iPeriod].temp & 0x0003) * 25),
-				_stPeriods[_iPeriod].time / 3600,
-				_stPeriods[_iPeriod].time / 60,
-				_iPeriod);
-			lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
-			sprintf(_arLCDline, "  %02d.%02d %02d:%02d:%02d",
-				(_iTemp >> 2),
-				((_iTemp & 0x0003) * 25),
-				(_iTime / 3600),
-				(_iTime / 60) % 60,
-				(_iTime) % 60);
-			lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
+		} else {
+			OUT_PORT &= ~(OUT_LED_GREEN);    // turn off green led
+			OUT_PORT |= OUT_LED_RED;         // turn on green led
+			_iStatus &= ~(STATUS_PUMP);
+			_iStatus &= ~(STATUS_HEATER);
+			_iStatus &= ~(STATUS_COOLER);
 		}
+
+		// update the display
+		sprintf(_arLCDline, "%02d.%02d %02d.%02d P%01x",
+			(_stPeriods[_iPeriod].temp >> 2),
+			((_stPeriods[_iPeriod].temp & 0x0003) * 25),
+			_stPeriods[_iPeriod].time / 3600,
+			_stPeriods[_iPeriod].time / 60,
+			_iPeriod);
+		lcd_gotoxy(2, 0); lcd_puts(_arLCDline);
+		sprintf(_arLCDline, "%02d.%02d %02d:%02d:%02d",
+			(_iTemp >> 2),
+			((_iTemp & 0x0003) * 25),
+			(_iTime / 3600),
+			(_iTime / 60) % 60,
+			(_iTime) % 60);
+		lcd_gotoxy(2, 1); lcd_puts(_arLCDline);
 
 		// if pump status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_PUMP) {
 			OUT_PORT |= OUT_PUMP;
+			lcd_gotoxy(0, 0); lcd_putc(0);
 		} else {
 			OUT_PORT &= ~(OUT_PUMP);
+			lcd_gotoxy(0, 0); lcd_putc("H");
 		}
 		// if heater status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_HEATER) {
 			OUT_PORT |= OUT_HEATER;
+			lcd_gotoxy(0, 1); lcd_putc("H");
 		} else {
 			OUT_PORT &= ~(OUT_HEATER);
 		}
 		// if cooler status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_COOLER) {
 			OUT_PORT |= OUT_COOLER;
+			lcd_gotoxy(0, 1); lcd_putc("C");
 		} else {
 			OUT_PORT &= ~(OUT_COOLER);
+		}
+		if (!(_iStatus & STATUS_HEATER) && !(_iStatus & STATUS_COOLER)) {
+			lcd_gotoxy(0, 1); lcd_putc(" ");
 		}
 	}
 
