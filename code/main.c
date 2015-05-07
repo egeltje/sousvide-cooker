@@ -48,8 +48,7 @@ int main (void) {
 	uint8_t  _iButtonOld = 0;	// storing previously pressed button
 
 	// setup registers
-    fConfigSetup();
-	fConfigLoad(&_stPeriods, &_stCalibration);
+    fConfigSetup(&_stPeriods, &_stCalibration);
 
 	// Initial update of the display
 	sprintf(_arLCDline, "%02d.%02d %02d.%02d %01x",

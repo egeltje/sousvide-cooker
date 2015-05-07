@@ -34,38 +34,78 @@
 #include "lcd.h"
 #include "config.h"
 
-
 /****************************************************************************
  Config routine
  ****************************************************************************/
 uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
+
+	char *_arMenuOptions[4][16];
+
+	lcd_gotoxy(0, 0); lcd_puts("Configuration   ");
+	_arMenuOptions[0][0] = "Exit";
+	_arMenuOptions[1][0] = "Periods";
+	_arMenuOptions[2][0] = "Calibration";
+	_arMenuOptions[3][0] = "";
+
+	switch (fConfigMenuChoice(*_arMenuOptions)) {
+		case 0:
+			break;
+		case 1:
+			fConfigPeriods (stPeriods);
+			break;
+		case 2:
+			fConfigPeriods (stPeriods);
+			break;
+	}
+
 	return 0;
 }
 
-/****************************************************************************
- ConfigLload routine
- This routine will load the previously programmed periods from the MCU EEPROM
- ****************************************************************************/
-uint8_t fConfigLoad (struct periods *stPeriods, struct calibration *stCalibration) {
-
-	eeprom_read_block((void*)stCalibration, (const void*)0, sizeof(struct calibration));
-	eeprom_read_block((void*)stPeriods, (const void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
-/*
-//  DUMMY VALUES FOR TESTING
-	stPeriods[0].temp = 250;
-	stPeriods[0].time = 60;
-	stPeriods[0].loop = 0;
-	stPeriods[1].temp = 160;
-	stPeriods[1].time = 120;
-	stPeriods[1].loop = 1;
-	stPeriods[2].temp = 0;
-	stPeriods[2].time = 0;
-	stPeriods[2].loop = 0;
-//	eeprom_write_block((const void*)stCalibration, (void*)0, sizeof(struct calibration));
-//	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
-*/
+uint8_t fConfigCalibration (struct calibration *stCalibration) {
 	return 0;
 }
+
+uint8_t fConfigPeriods (struct periods *stPeriods) {
+	return 0;
+}
+
+uint8_t fConfigMenuChoice (char *arMenuOptions) {
+
+	uint8_t _i = 0;
+	uint8_t _iMenuOption = 0;
+	uint8_t _iMenuLength = 0;
+
+	char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
+	uint8_t _iButtonOld;
+
+	while (arMenuOptions[_iMenuLength] != 0) {
+		_iMenuLength++;
+	}
+
+	while (1) {
+		lcd_gotoxy(0, 1); lcd_puts(arMenuOptions[_iMenuOption]);
+		// display option
+		if (iButton != 0) {
+			if (iButton != _iButtonOld) {    // new button pressed
+				if (iButton & BUTTON_ARROW_RIGHT) {
+					return _iMenuOption;
+				}
+				if (iButton & BUTTON_ARROW_UP) {
+					_iMenuOption++;
+					if (_iMenuOption > _iMenuLength) _iMenuOption = 0;
+				}
+				if (iButton & BUTTON_ARROW_DOWN) {
+					if (_iMenuOption == 0) _iMenuOption = _iMenuLength + 1;
+					_iMenuOption--;
+				}
+				_iButtonOld = iButton;
+			}
+		}
+	}
+
+	return 0;
+}
+
 
 /****************************************************************************
  Add period routine
@@ -101,7 +141,7 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 				// BUTTON_ARROW_UP and BUTTON_ARROW_DOWN change the value of
 				// the number the cursor is at. There are 4 steps in a single
 				// degree.
-				if (iButton == BUTTON_ARROW_LEFT) {
+				if (iButton & BUTTON_ARROW_LEFT) {
 					if (_iCursorPos == 3) {      // 10    digit temp
 						_iCursorPos = 2;
 					}
@@ -124,7 +164,7 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 						_iCursorPos = 13;
 					}
 				}
-				if (iButton == BUTTON_ARROW_RIGHT) {
+				if (iButton & BUTTON_ARROW_RIGHT) {
 					if (_iCursorPos == 16) {
 						_iCursorPos = 17;
 					}
@@ -150,7 +190,7 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 						_iCursorPos = 3;
 					}
 				}
-				if (iButton == BUTTON_ARROW_DOWN) {
+				if (iButton & BUTTON_ARROW_DOWN) {
 					if (_iCursorPos == 2) {
 						if (_iPeriodTemp >= 40) _iPeriodTemp -= 40;
 					}
@@ -173,7 +213,7 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 						if (_iPeriodTime >= 61) _iPeriodTime -= 60;
 					}
 				}
-				if (iButton == BUTTON_ARROW_UP) {
+				if (iButton & BUTTON_ARROW_UP) {
 					if (_iCursorPos == 2) {
 						if (_iPeriodTemp <= 359) _iPeriodTemp += 40;
 					}
@@ -200,8 +240,6 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 			}
 
 			// update the display
-			sprintf(_arLCDline, "Edit period    %01x", iPeriod);
-			lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
 			sprintf(_arLCDline, "  %02d.%02d %02d:%02d  >",
 				(_iPeriodTemp >> 2),
 				((_iPeriodTemp & 0x0003) * 25),
@@ -220,7 +258,7 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 /****************************************************************************
  config setup routine
  ****************************************************************************/
-uint8_t fConfigSetup (void) {
+uint8_t fConfigSetup (struct periods *stPeriods, struct calibration *stCalibration) {
     uint8_t _i;                         // loop variable
 
     cli();                              // disable interrupts
@@ -268,6 +306,22 @@ uint8_t fConfigSetup (void) {
     }
     lcd_command(_BV(LCD_CGRAM));
 
+	eeprom_read_block((void*)stCalibration, (const void*)0, sizeof(struct calibration));
+	eeprom_read_block((void*)stPeriods, (const void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
+/*
+//  DUMMY VALUES FOR TESTING
+	stPeriods[0].temp = 250;
+	stPeriods[0].time = 60;
+	stPeriods[0].loop = 0;
+	stPeriods[1].temp = 160;
+	stPeriods[1].time = 120;
+	stPeriods[1].loop = 1;
+	stPeriods[2].temp = 0;
+	stPeriods[2].time = 0;
+	stPeriods[2].loop = 0;
+//	eeprom_write_block((const void*)stCalibration, (void*)0, sizeof(struct calibration));
+//	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
+*/
     sei();                              // enable interrupts
 
     return 0;

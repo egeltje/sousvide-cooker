@@ -31,9 +31,12 @@
 //                          ((F_CPU / CPU_PRESCALER / Hz)
 
 extern uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration);
-extern uint8_t fConfigLoad (struct periods *stPeriods, struct calibration *stCalibration);
+extern uint8_t fConfigCalibration (struct calibration *stCalibration);
+extern uint8_t fConfigMenuChoice (char* arMenuOptions);
+extern uint8_t fConfigPeriods (struct periods *stPeriods);
 extern uint8_t fConfigPeriodAdd (struct periods *stPeriods, uint8_t iPeriod);
 extern uint8_t fConfigPeriodEdit (struct periods *stPeriods, uint8_t iPeriod);
-extern uint8_t fConfigSetup();
+extern uint8_t fConfigSetup (struct periods *stPeriods, struct calibration *stCalibration);
+
 
 #endif /* CONFIG_H_ */
