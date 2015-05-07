@@ -61,11 +61,13 @@
 struct calibration {
 	uint16_t ice;
 	uint16_t steam;
+	uint16_t coefficient;
 };
 
 struct periods {
 	uint16_t temp;
 	uint16_t time;
+	uint8_t  loop;
 };
 
 volatile uint16_t iTempRead;		// storing read temperature

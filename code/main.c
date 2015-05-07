@@ -27,9 +27,7 @@
 
 #include <stdio.h>
 #include <avr/io.h>
-#include <avr/eeprom.h>
 #include <avr/interrupt.h>
-#include <avr/pgmspace.h>
 #include "main.h"
 #include "lcd.h"
 #include "config.h"
@@ -41,20 +39,29 @@ int main (void) {
 
 	// declare variables
 	struct calibration _stCalibration;
-
 	struct periods _stPeriods[MAX_PERIODS];
-	struct periods *_pPeriods = &_stPeriods;
 	uint8_t  _iPeriod = 0;		// storing current period
-
 	uint16_t _iTime = 0;		// counting time in seconds
 	uint16_t _iTemp = 0;		// counting temperature in
 	uint8_t  _iStatus;			// storing system states
+	char     _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
+	uint8_t  _iButtonOld = 0;	// storing previously pressed button
 
-	char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
-	uint8_t   _iButtonOld = 0;	// storing previously pressed button
+	// setup registers
+    fConfigSetup();
+	fConfigLoad(&_stPeriods, &_stCalibration);
 
-    // setup registers
-    fSetup();
+	// Initial update of the display
+	sprintf(_arLCDline, "%02d.%02d %02d.%02d %01x",
+		(_stPeriods[_iPeriod].temp >> 2),
+		((_stPeriods[_iPeriod].temp & 0x0003) * 25),
+		_stPeriods[_iPeriod].time / 3600,
+		_stPeriods[_iPeriod].time / 60,
+		_iPeriod);
+	lcd_gotoxy(2, 0); lcd_puts(_arLCDline);
+	if (_stPeriods[_iPeriod].loop) {
+		lcd_gotoxy(15, 0); lcd_putc(0x01);
+	}
 
     // run main program
     while (1) {
@@ -69,7 +76,7 @@ int main (void) {
 				}
 				if (iButton & BUTTON_CONFIG) {
 					if (!(_iStatus & STATUS_RUN)) {
-						fConfigLoad(&_stPeriods, &_stCalibration);
+						fConfig(&_stPeriods, &_stCalibration);
 					}
 				}
 	    		_iButtonOld = iButton;
@@ -91,11 +98,27 @@ int main (void) {
 			OUT_PORT |= OUT_LED_GREEN;	    // turn on green led
 
 			if (_iTime >= _stPeriods[_iPeriod].time) {
-				_iPeriod++;
+				if (_stPeriods[_iPeriod].loop) {
+					_iPeriod = 0;
+				} else {
+					_iPeriod++;
+				}
 				_iTime = 0;
 				if (_stPeriods[_iPeriod].time == 0) {
-					_iStatus &= ~(STATUS_RUN);
 					_iPeriod = 0;
+					_iStatus &= ~(STATUS_RUN);
+				}
+				sprintf(_arLCDline, "%02d.%02d %02d.%02d %01x",
+					(_stPeriods[_iPeriod].temp >> 2),
+					((_stPeriods[_iPeriod].temp & 0x0003) * 25),
+					_stPeriods[_iPeriod].time / 3600,
+					_stPeriods[_iPeriod].time / 60,
+					_iPeriod);
+				lcd_gotoxy(2, 0); lcd_puts(_arLCDline);
+				if (_stPeriods[_iPeriod].loop) {
+					lcd_gotoxy(15, 0); lcd_putc(0x01);
+				} else {
+					lcd_gotoxy(15, 0); lcd_putc(0x20);
 				}
 			}
 			// turn on the pump
@@ -125,13 +148,6 @@ int main (void) {
 		}
 
 		// update the display
-		sprintf(_arLCDline, "%02d.%02d %02d.%02d P%01x",
-			(_stPeriods[_iPeriod].temp >> 2),
-			((_stPeriods[_iPeriod].temp & 0x0003) * 25),
-			_stPeriods[_iPeriod].time / 3600,
-			_stPeriods[_iPeriod].time / 60,
-			_iPeriod);
-		lcd_gotoxy(2, 0); lcd_puts(_arLCDline);
 		sprintf(_arLCDline, "%02d.%02d %02d:%02d:%02d",
 			(_iTemp >> 2),
 			((_iTemp & 0x0003) * 25),
@@ -143,27 +159,25 @@ int main (void) {
 		// if pump status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_PUMP) {
 			OUT_PORT |= OUT_PUMP;
-			lcd_gotoxy(0, 0); lcd_putc(0);
 		} else {
 			OUT_PORT &= ~(OUT_PUMP);
-			lcd_gotoxy(0, 0); lcd_putc("H");
 		}
 		// if heater status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_HEATER) {
 			OUT_PORT |= OUT_HEATER;
-			lcd_gotoxy(0, 1); lcd_putc("H");
+			lcd_gotoxy(0, 1); lcd_putc(0x48);
 		} else {
 			OUT_PORT &= ~(OUT_HEATER);
 		}
 		// if cooler status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_COOLER) {
 			OUT_PORT |= OUT_COOLER;
-			lcd_gotoxy(0, 1); lcd_putc("C");
+			lcd_gotoxy(0, 1); lcd_putc(0x43);
 		} else {
 			OUT_PORT &= ~(OUT_COOLER);
 		}
 		if (!(_iStatus & STATUS_HEATER) && !(_iStatus & STATUS_COOLER)) {
-			lcd_gotoxy(0, 1); lcd_putc(" ");
+			lcd_gotoxy(0, 1); lcd_putc(0x20);
 		}
 	}
 
@@ -186,6 +200,6 @@ ISR(TIMER1_COMPA_vect) {
  occurs when analog conversion is completed
  ****************************************************************************/
 ISR(ADC_vect) {
-    iTempRead += ADC; // read ADC
+    iTempRead += ADC; 				// read ADC
     KBD_PORT &= ~(BUTTON_LED);      // switch back LED off
 }
