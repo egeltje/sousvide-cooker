@@ -39,15 +39,15 @@
  ****************************************************************************/
 uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 
-	char *_arMenuOptions[4][16];
+	const char _cMenuItem0[] = "Exit";
+	const char _cMenuItem1[] = "Periods";
+	const char _cMenuItem2[] = "Calibration";
+	const char _cMenuItem3[] = "\0";
+	const char * const _cMenu[] = {_cMenuItem0, _cMenuItem1, _cMenuItem2, _cMenuItem3};
 
 	lcd_gotoxy(0, 0); lcd_puts("Configuration   ");
-	_arMenuOptions[0][0] = "Exit";
-	_arMenuOptions[1][0] = "Periods";
-	_arMenuOptions[2][0] = "Calibration";
-	_arMenuOptions[3][0] = "";
 
-	switch (fConfigMenuChoice(*_arMenuOptions)) {
+	switch (fConfigMenuChoice(&_cMenu)) {
 		case 0:
 			break;
 		case 1:
@@ -69,21 +69,20 @@ uint8_t fConfigPeriods (struct periods *stPeriods) {
 	return 0;
 }
 
-uint8_t fConfigMenuChoice (char *arMenuOptions) {
+uint8_t fConfigMenuChoice (const char *pMenu) {
 
-	uint8_t _i = 0;
 	uint8_t _iMenuOption = 0;
 	uint8_t _iMenuLength = 0;
 
-	char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
 	uint8_t _iButtonOld;
 
-	while (arMenuOptions[_iMenuLength] != 0) {
+	while (pMenu[_iMenuLength] != 0) {
 		_iMenuLength++;
 	}
+	lcd_gotoxy(0, 1); lcd_puts("                ");
 
 	while (1) {
-		lcd_gotoxy(0, 1); lcd_puts(arMenuOptions[_iMenuOption]);
+		lcd_gotoxy(0, 1); lcd_puts(&pMenu[_iMenuOption]);
 		// display option
 		if (iButton != 0) {
 			if (iButton != _iButtonOld) {    // new button pressed
