@@ -75,7 +75,7 @@ int main (void) {
 				}
 				if (iButton & BUTTON_CONFIG) {
 					if (!(_iStatus & STATUS_RUN)) {
-						fConfig(&_stPeriods, &_stCalibration);
+						fConfig(_stPeriods, &_stCalibration);
 					}
 				}
 	    		_iButtonOld = iButton;

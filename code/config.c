@@ -45,10 +45,9 @@ uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 			NULL};
 	uint8_t _iExit = 0;
 
-	lcd_clrscr();
-	lcd_gotoxy(0, 0); lcd_puts("Configuration   ");
-
 	while (!_iExit) {
+		lcd_clrscr();
+		lcd_gotoxy(0, 0); lcd_puts("Configuration   ");
 		switch (fConfigMenuChoice(_cMenu)) {
 			case 1:
 				fConfigPeriods (stPeriods);
@@ -72,16 +71,15 @@ uint8_t fConfigCalibration (struct calibration *stCalibration) {
 			NULL};
 	uint8_t _iExit = 0;
 
-	lcd_clrscr();
-	lcd_gotoxy(0, 0); lcd_puts("Calibration     ");
-
 	while (!_iExit) {
+		lcd_clrscr();
+		lcd_gotoxy(0, 0); lcd_puts("Calibration     ");
 		switch (fConfigMenuChoice(_cMenu)) {
 			case 1:
-				stCalibration->zeroC = fConfigCalibrationMeasurement();
+				stCalibration->zeroC = fConfigCalibrationMeasurement(0);
 				break;
 			case 2:
-				stCalibration->hundredC = fConfigCalibrationMeasurement();
+				stCalibration->hundredC = fConfigCalibrationMeasurement(100);
 				break;
 			default:
 				_iExit = 1;
@@ -95,14 +93,15 @@ uint8_t fConfigCalibration (struct calibration *stCalibration) {
 	return 0;
 }
 
-uint16_t fConfigCalibrationMeasurement (void) {
+uint16_t fConfigCalibrationMeasurement (uint8_t value) {
 	uint8_t  _iExit = 0;
 	uint8_t  _iTemp = 0;
 	uint8_t  _iButtonOld = iButton;
 	char     _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
 
 	lcd_clrscr();
-	lcd_gotoxy(0, 0); lcd_puts("Calibration 0C  ");
+	sprintf(_arLCDline, "Calibration %dC", value);
+	lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
 	lcd_gotoxy(0, 1); lcd_puts("          Set >");
 
     while (!_iExit) {
@@ -120,8 +119,7 @@ uint16_t fConfigCalibrationMeasurement (void) {
 			sprintf(_arLCDline, "%03d.%02d",
 				(_iTemp >> 2),
 				((_iTemp & 0x0003) * 25));
-			lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
-
+			lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
 		}
     }
     return _iTemp;
