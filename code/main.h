@@ -59,8 +59,8 @@
 #define MAX_PERIODS         16
 
 struct calibration {
-	uint16_t ice;
-	uint16_t steam;
+	uint16_t zeroC;
+	uint16_t hundredC;
 	uint16_t coefficient;
 };
 
