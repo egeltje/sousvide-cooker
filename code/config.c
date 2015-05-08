@@ -43,19 +43,23 @@ uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 			"Periods       >",
 			"Calibration   >",
 			NULL};
+	uint8_t _iExit = 0;
 
 	lcd_clrscr();
 	lcd_gotoxy(0, 0); lcd_puts("Configuration   ");
 
-	switch (fConfigMenuChoice(_cMenu)) {
-		case 1:
-			fConfigPeriods (stPeriods);
-			break;
-		case 2:
-			fConfigCalibration (stCalibration);
-			break;
-		default:
-			break;
+	while (!_iExit) {
+		switch (fConfigMenuChoice(_cMenu)) {
+			case 1:
+				fConfigPeriods (stPeriods);
+				break;
+			case 2:
+				fConfigCalibration (stCalibration);
+				break;
+			default:
+				_iExit = 1;
+				break;
+		}
 	}
 	return 0;
 }
@@ -66,38 +70,61 @@ uint8_t fConfigCalibration (struct calibration *stCalibration) {
 			"0C            >",
 			"100C          >",
 			NULL};
+	uint8_t _iExit = 0;
 
 	lcd_clrscr();
 	lcd_gotoxy(0, 0); lcd_puts("Calibration     ");
 
-	switch (fConfigMenuChoice(_cMenu)) {
-		case 0:
-			break;
-		case 1:
-			fConfigCalibrationIce(stCalibration);
-			break;
-		case 2:
-			fConfigCalibrationSteam(stCalibration);
-			break;
-		default:
-			break;
+	while (!_iExit) {
+		switch (fConfigMenuChoice(_cMenu)) {
+			case 1:
+				stCalibration->zeroC = fConfigCalibrationMeasurement();
+				break;
+			case 2:
+				stCalibration->hundredC = fConfigCalibrationMeasurement();
+				break;
+			default:
+				_iExit = 1;
+				break;
+		}
 	}
+//	calculate coefficient
+
 //	eeprom_write_block((const void*)stCalibration, (void*)0, sizeof(struct calibration));
+
 	return 0;
 }
 
-uint8_t fConfigCalibrationIce (struct calibration *stCalibration) {
+uint16_t fConfigCalibrationMeasurement (void) {
+	uint8_t  _iExit = 0;
+	uint8_t  _iTemp = 0;
+	uint8_t  _iButtonOld = iButton;
+	char     _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
+
 	lcd_clrscr();
 	lcd_gotoxy(0, 0); lcd_puts("Calibration 0C  ");
+	lcd_gotoxy(0, 1); lcd_puts("          Set >");
 
-	return 0;
-}
+    while (!_iExit) {
+    	if (iButton != _iButtonOld) {    // new button pressed
+			if (iButton & BUTTON_ARROW_RIGHT) {
+					_iExit = 1;
+			}
+    		_iButtonOld = iButton;
+    	}
+		if (iTick >= 10) {
+			iTick = 0;
 
-uint8_t fConfigCalibrationSteam (struct calibration *stCalibration) {
-	lcd_clrscr();
-	lcd_gotoxy(0, 0); lcd_puts("Calibration 100C");
+			_iTemp = iTempRead / 10;
+			iTempRead = 0;
+			sprintf(_arLCDline, "%03d.%02d",
+				(_iTemp >> 2),
+				((_iTemp & 0x0003) * 25));
+			lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
 
-	return 0;
+		}
+    }
+    return _iTemp;
 }
 
 uint8_t fConfigPeriods (struct periods *stPeriods) {
@@ -111,8 +138,8 @@ uint8_t fConfigPeriods (struct periods *stPeriods) {
 
 uint8_t fConfigMenuChoice (char *pMenu[]) {
 	uint8_t _iMenuOption = 0;
-	uint8_t _iButtonOld  = iButton;
 	uint8_t _iMenuLength = 0;
+	uint8_t _iButtonOld  = iButton;
 	char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
 
 	while (pMenu[_iMenuLength] != NULL) _iMenuLength++;
@@ -159,9 +186,9 @@ uint8_t fConfigPeriodAdd (struct periods *stPeriods, uint8_t iPeriod) {
  Edit period routine
  ****************************************************************************/
 uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
-    char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
     uint8_t _iCursorPos = 2;             // storing cursor position
-    uint8_t _iButtonOld = 0;
+    uint8_t _iButtonOld = iButton;
+    char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
 
 	while (_iCursorPos <= 16) {
 		if (iButton != 0) {
