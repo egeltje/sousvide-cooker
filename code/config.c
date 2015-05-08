@@ -82,6 +82,7 @@ uint8_t fConfigCalibration (struct calibration *stCalibration) {
 		default:
 			break;
 	}
+//	eeprom_write_block((const void*)stCalibration, (void*)0, sizeof(struct calibration));
 	return 0;
 }
 
@@ -102,6 +103,8 @@ uint8_t fConfigCalibrationSteam (struct calibration *stCalibration) {
 uint8_t fConfigPeriods (struct periods *stPeriods) {
 	lcd_clrscr();
 	lcd_gotoxy(0, 0); lcd_puts("Periods");
+
+//	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
 
 	return 0;
 }
@@ -156,8 +159,6 @@ uint8_t fConfigPeriodAdd (struct periods *stPeriods, uint8_t iPeriod) {
  Edit period routine
  ****************************************************************************/
 uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
-    uint16_t _iPeriodTemp = stPeriods[iPeriod].temp;
-    uint16_t _iPeriodTime = stPeriods[iPeriod].time;
     char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
     uint8_t _iCursorPos = 2;             // storing cursor position
     uint8_t _iButtonOld = 0;
@@ -222,48 +223,48 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 				}
 				if (iButton & BUTTON_ARROW_DOWN) {
 					if (_iCursorPos == 2) {
-						if (_iPeriodTemp >= 40) _iPeriodTemp -= 40;
+						if (stPeriods[iPeriod].temp >= 40) stPeriods[iPeriod].temp -= 40;
 					}
 					if (_iCursorPos == 3) {
-						if (_iPeriodTemp >= 4) _iPeriodTemp -= 4;
+						if (stPeriods[iPeriod].temp >= 4) stPeriods[iPeriod].temp -= 4;
 					}
 					if (_iCursorPos == 5) {
-						if (_iPeriodTemp >= 1) _iPeriodTemp -= 1;
+						if (stPeriods[iPeriod].temp >= 1) stPeriods[iPeriod].temp -= 1;
 					}
 					if (_iCursorPos == 9) {
-						if (_iPeriodTime >= 36001) _iPeriodTime -= 36000;
+						if (stPeriods[iPeriod].time >= 36001) stPeriods[iPeriod].time -= 36000;
 					}
 					if (_iCursorPos == 10) {
-						if (_iPeriodTime >= 3601) _iPeriodTime -= 3600;
+						if (stPeriods[iPeriod].time >= 3601) stPeriods[iPeriod].time -= 3600;
 					}
 					if (_iCursorPos == 12) {
-						if (_iPeriodTime >= 601) _iPeriodTime -= 600;
+						if (stPeriods[iPeriod].time >= 601) stPeriods[iPeriod].time -= 600;
 					}
 					if (_iCursorPos == 13) {
-						if (_iPeriodTime >= 61) _iPeriodTime -= 60;
+						if (stPeriods[iPeriod].time >= 61) stPeriods[iPeriod].time -= 60;
 					}
 				}
 				if (iButton & BUTTON_ARROW_UP) {
 					if (_iCursorPos == 2) {
-						if (_iPeriodTemp <= 359) _iPeriodTemp += 40;
+						if (stPeriods[iPeriod].temp <= 359) stPeriods[iPeriod].temp += 40;
 					}
 					if (_iCursorPos == 3) {
-						if (_iPeriodTemp <= 395) _iPeriodTemp += 4;
+						if (stPeriods[iPeriod].temp <= 395) stPeriods[iPeriod].temp += 4;
 					}
 					if (_iCursorPos == 5) {
-						if (_iPeriodTemp <= 398) _iPeriodTemp += 1;
+						if (stPeriods[iPeriod].temp <= 398) stPeriods[iPeriod].temp += 1;
 					}
 					if (_iCursorPos == 9) {
-						if (_iPeriodTime <= 7200) _iPeriodTime += 36000;
+						if (stPeriods[iPeriod].time <= 7200) stPeriods[iPeriod].time += 36000;
 					}
 					if (_iCursorPos == 10) {
-						if (_iPeriodTime <= 39600) _iPeriodTime += 3600;
+						if (stPeriods[iPeriod].time <= 39600) stPeriods[iPeriod].time += 3600;
 					}
 					if (_iCursorPos == 12) {
-						if (_iPeriodTime <= 42600) _iPeriodTime += 600;
+						if (stPeriods[iPeriod].time <= 42600) stPeriods[iPeriod].time += 600;
 					}
 					if (_iCursorPos == 13) {
-						if (_iPeriodTime <= 42140) _iPeriodTime += 60;
+						if (stPeriods[iPeriod].time <= 42140) stPeriods[iPeriod].time += 60;
 					}
 				}
 				_iButtonOld = iButton;
@@ -271,17 +272,13 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 
 			// update the display
 			sprintf(_arLCDline, "  %02d.%02d %02d:%02d  >",
-				(_iPeriodTemp >> 2),
-				((_iPeriodTemp & 0x0003) * 25),
-				(_iPeriodTime/3600),
-				(_iPeriodTime/60) % 60);
+				(stPeriods[iPeriod].temp >> 2),
+				((stPeriods[iPeriod].temp & 0x0003) * 25),
+				(stPeriods[iPeriod].time/3600),
+				(stPeriods[iPeriod].time/60) % 60);
 			lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
 		}
 	}
-
-    stPeriods[iPeriod].temp = _iPeriodTemp;
-    stPeriods[iPeriod].time = _iPeriodTime;
-
 	return 0;
 }
 
