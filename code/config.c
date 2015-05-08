@@ -50,7 +50,7 @@ uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 			fConfigPeriods (stPeriods);
 			break;
 		case 2:
-			fConfigPeriods (stPeriods);
+			fConfigCalibration (stCalibration);
 			break;
 	}
 
@@ -89,14 +89,14 @@ uint8_t fConfigMenuChoice (const char *pMenu[]) {
 
 	lcd_gotoxy(0, 1); lcd_puts("                ");
 
-	while (1) {
+	while (_iMenuLength > 0) {
 		sprintf(_arLCDline, "%s", pMenu[_iMenuOption]);
 		lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
 
 		if (iButton != 0) {
 			if (iButton != _iButtonOld) {    // new button pressed
 				if (iButton & BUTTON_ARROW_RIGHT) {
-					return _iMenuOption;
+					_iMenuLength = 0;
 				}
 				if (iButton & BUTTON_ARROW_UP) {
 					_iMenuOption++;
@@ -111,7 +111,7 @@ uint8_t fConfigMenuChoice (const char *pMenu[]) {
 		}
 	}
 
-	return 0;
+	return _iMenuOption;
 }
 
 
