@@ -39,15 +39,11 @@
  ****************************************************************************/
 uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 
-	const char _cMenuItem0[] = "Exit";
-	const char _cMenuItem1[] = "Periods";
-	const char _cMenuItem2[] = "Calibration";
-	const char _cMenuItem3[] = "\0";
-	const char * const _cMenu[] = {_cMenuItem0, _cMenuItem1, _cMenuItem2, _cMenuItem3};
+	const char *_cMenu[] = {"Exit", "Periods", "Calibration", NULL};
 
 	lcd_gotoxy(0, 0); lcd_puts("Configuration   ");
 
-	switch (fConfigMenuChoice(&_cMenu)) {
+	switch (fConfigMenuChoice(_cMenu)) {
 		case 0:
 			break;
 		case 1:
@@ -62,6 +58,19 @@ uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 }
 
 uint8_t fConfigCalibration (struct calibration *stCalibration) {
+
+	const char *_cMenu[] = {"Exit", "Steam", "Ice", NULL};
+
+	lcd_gotoxy(0, 0); lcd_puts("Calibration     ");
+
+	switch (fConfigMenuChoice(_cMenu)) {
+		case 0:
+			break;
+		case 1:
+			break;
+		case 2:
+			break;
+	}
 	return 0;
 }
 
@@ -69,21 +78,21 @@ uint8_t fConfigPeriods (struct periods *stPeriods) {
 	return 0;
 }
 
-uint8_t fConfigMenuChoice (const char *pMenu) {
+uint8_t fConfigMenuChoice (const char *pMenu[]) {
 
 	uint8_t _iMenuOption = 0;
+	uint8_t _iButtonOld  = 0;
 	uint8_t _iMenuLength = 0;
+	char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
 
-	uint8_t _iButtonOld;
+	while (pMenu[_iMenuLength] != NULL) _iMenuLength++;
 
-	while (pMenu[_iMenuLength] != 0) {
-		_iMenuLength++;
-	}
 	lcd_gotoxy(0, 1); lcd_puts("                ");
 
 	while (1) {
-		lcd_gotoxy(0, 1); lcd_puts(&pMenu[_iMenuOption]);
-		// display option
+		sprintf(_arLCDline, "%s", pMenu[_iMenuOption]);
+		lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
+
 		if (iButton != 0) {
 			if (iButton != _iButtonOld) {    // new button pressed
 				if (iButton & BUTTON_ARROW_RIGHT) {
@@ -91,10 +100,10 @@ uint8_t fConfigMenuChoice (const char *pMenu) {
 				}
 				if (iButton & BUTTON_ARROW_UP) {
 					_iMenuOption++;
-					if (_iMenuOption > _iMenuLength) _iMenuOption = 0;
+					if (_iMenuOption >= _iMenuLength) _iMenuOption = 0;
 				}
 				if (iButton & BUTTON_ARROW_DOWN) {
-					if (_iMenuOption == 0) _iMenuOption = _iMenuLength + 1;
+					if (_iMenuOption == 0) _iMenuOption = _iMenuLength;
 					_iMenuOption--;
 				}
 				_iButtonOld = iButton;

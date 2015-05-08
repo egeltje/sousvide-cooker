@@ -50,7 +50,7 @@ int main (void) {
 	// setup registers
     fConfigSetup(&_stPeriods, &_stCalibration);
 
-	// Initial update of the display
+    // Initial update of the display
 	sprintf(_arLCDline, "%02d.%02d %02d.%02d %01x",
 		(_stPeriods[_iPeriod].temp >> 2),
 		((_stPeriods[_iPeriod].temp & 0x0003) * 25),
@@ -91,6 +91,17 @@ int main (void) {
 			if (_iStatus & STATUS_RUN) {
 				_iTime++;
 			}
+			// Initial update of the display
+			sprintf(_arLCDline, "  %02d.%02d %02d.%02d %01x",
+				(_stPeriods[_iPeriod].temp >> 2),
+				((_stPeriods[_iPeriod].temp & 0x0003) * 25),
+				_stPeriods[_iPeriod].time / 3600,
+				_stPeriods[_iPeriod].time / 60,
+				_iPeriod);
+			lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+			if (_stPeriods[_iPeriod].loop) {
+				lcd_gotoxy(15, 0); lcd_putc(0x01);
+			}
 		}
 		if (_iStatus & STATUS_RUN) {
 			OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
@@ -106,18 +117,6 @@ int main (void) {
 				if (_stPeriods[_iPeriod].time == 0) {
 					_iPeriod = 0;
 					_iStatus &= ~(STATUS_RUN);
-				}
-				sprintf(_arLCDline, "%02d.%02d %02d.%02d %01x",
-					(_stPeriods[_iPeriod].temp >> 2),
-					((_stPeriods[_iPeriod].temp & 0x0003) * 25),
-					_stPeriods[_iPeriod].time / 3600,
-					_stPeriods[_iPeriod].time / 60,
-					_iPeriod);
-				lcd_gotoxy(2, 0); lcd_puts(_arLCDline);
-				if (_stPeriods[_iPeriod].loop) {
-					lcd_gotoxy(15, 0); lcd_putc(0x01);
-				} else {
-					lcd_gotoxy(15, 0); lcd_putc(0x20);
 				}
 			}
 			// turn on the pump
@@ -147,13 +146,13 @@ int main (void) {
 		}
 
 		// update the display
-		sprintf(_arLCDline, "%02d.%02d %02d:%02d:%02d",
+		sprintf(_arLCDline, "  %02d.%02d %02d:%02d:%02d",
 			(_iTemp >> 2),
 			((_iTemp & 0x0003) * 25),
 			(_iTime / 3600),
 			(_iTime / 60) % 60,
 			(_iTime) % 60);
-		lcd_gotoxy(2, 1); lcd_puts(_arLCDline);
+		lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
 
 		// if pump status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_PUMP) {
