@@ -38,7 +38,11 @@
  Config routine
  ****************************************************************************/
 uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
-	char *_cMenu[] = {"Exit", "Periods", "Calibration", NULL};
+	char *_cMenu[] = {
+			"Exit          >",
+			"Periods       >",
+			"Calibration   >",
+			NULL};
 
 	lcd_clrscr();
 	lcd_gotoxy(0, 0); lcd_puts("Configuration   ");
@@ -57,7 +61,11 @@ uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 }
 
 uint8_t fConfigCalibration (struct calibration *stCalibration) {
-	char *_cMenu[] = {"Exit", "0C", "100C", NULL};
+	char *_cMenu[] = {
+			"Exit          >",
+			"0C            >",
+			"100C          >",
+			NULL};
 
 	lcd_clrscr();
 	lcd_gotoxy(0, 0); lcd_puts("Calibration     ");
@@ -79,7 +87,7 @@ uint8_t fConfigCalibration (struct calibration *stCalibration) {
 
 uint8_t fConfigCalibrationIce (struct calibration *stCalibration) {
 	lcd_clrscr();
-	lcd_gotoxy(0, 0); lcd_puts("Calibration 0C ");
+	lcd_gotoxy(0, 0); lcd_puts("Calibration 0C  ");
 
 	return 0;
 }
@@ -107,7 +115,6 @@ uint8_t fConfigMenuChoice (char *pMenu[]) {
 	while (pMenu[_iMenuLength] != NULL) _iMenuLength++;
 
 	while (_iMenuLength > 0) {
-		lcd_gotoxy(0, 1); lcd_puts("                ");
 		sprintf(_arLCDline, "%s", pMenu[_iMenuOption]);
 		lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
 
