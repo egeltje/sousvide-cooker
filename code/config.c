@@ -39,25 +39,29 @@
  ****************************************************************************/
 uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 	char *_cMenu[] = {
-			"Exit          >",
 			"Periods       >",
 			"Calibration   >",
+			"Exit          >",
 			NULL};
 	uint8_t _iExit = 0;
 
 	while (!_iExit) {
 		lcd_clrscr();
 		lcd_gotoxy(0, 0); lcd_puts("Configuration   ");
+
 		switch (fConfigMenuChoice(_cMenu)) {
-			case 1:
-				fConfigPeriods (stPeriods);
-				break;
-			case 2:
-				fConfigCalibration (stCalibration);
-				break;
-			default:
-				_iExit = 1;
-				break;
+		case 0:
+			fConfigPeriods (stPeriods);
+			break;
+		case 1:
+			fConfigCalibration (stCalibration);
+			break;
+		case 2:
+			_iExit = 1;
+			break;
+		default:
+			_iExit = 1;
+			break;
 		}
 	}
 	return 0;
@@ -65,25 +69,29 @@ uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 
 uint8_t fConfigCalibration (struct calibration *stCalibration) {
 	char *_cMenu[] = {
-			"Exit          >",
 			"0C            >",
 			"100C          >",
+			"Exit          >",
 			NULL};
 	uint8_t _iExit = 0;
 
 	while (!_iExit) {
 		lcd_clrscr();
 		lcd_gotoxy(0, 0); lcd_puts("Calibration     ");
+
 		switch (fConfigMenuChoice(_cMenu)) {
-			case 1:
-				stCalibration->zeroC = fConfigCalibrationMeasurement(0);
-				break;
-			case 2:
-				stCalibration->hundredC = fConfigCalibrationMeasurement(100);
-				break;
-			default:
-				_iExit = 1;
-				break;
+		case 0:
+			stCalibration->zeroC = fConfigCalibrationMeasurement(0);
+			break;
+		case 1:
+			stCalibration->hundredC = fConfigCalibrationMeasurement(100);
+			break;
+		case 2:
+			_iExit = 1;
+			break;
+		default:
+			_iExit = 1;
+			break;
 		}
 	}
 //	calculate coefficient
@@ -126,8 +134,50 @@ uint16_t fConfigCalibrationMeasurement (uint8_t value) {
 }
 
 uint8_t fConfigPeriods (struct periods *stPeriods) {
-	lcd_clrscr();
-	lcd_gotoxy(0, 0); lcd_puts("Periods");
+	uint8_t _iPeriod = 0;
+	char *_cMenu[] = {
+			"Next          >",
+			"Edit          >",
+			"Append        >",
+			"Delete        >",
+			"Exit          >",
+			NULL};
+	uint8_t _iExit = 0;
+
+	while (!_iExit) {
+		char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
+
+		lcd_clrscr();
+		sprintf(_arLCDline, "  %02d.%02d %02d.%02d %01x",
+			(stPeriods[_iPeriod].temp >> 2),
+			((stPeriods[_iPeriod].temp & 0x0003) * 25),
+			stPeriods[_iPeriod].time / 3600,
+			stPeriods[_iPeriod].time / 60,
+			_iPeriod);
+		lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+
+		switch (fConfigMenuChoice(_cMenu)) {
+		case 0:
+			_iPeriod++;
+			if ((stPeriods[_iPeriod].time == 0) || (_iPeriod >= MAX_PERIODS)) _iPeriod = 0;
+			break;
+		case 1:
+			fConfigPeriodEdit(stPeriods, _iPeriod);
+			break;
+		case 2:
+			//append
+			break;
+		case 3:
+			//delete
+			break;
+		case 4:
+			_iExit = 1;
+			break;
+		default:
+			_iExit = 1;
+			break;
+		}
+	}
 
 //	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
 
@@ -188,7 +238,14 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
     uint8_t _iButtonOld = iButton;
     char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
 
-	while (_iCursorPos <= 16) {
+    uint16_t	_iTemp = stPeriods[iPeriod].temp;
+    uint16_t	_iTime = stPeriods[iPeriod].time;
+
+    lcd_clrscr();
+    sprintf(_arLCDline, "Edit period %01x", iPeriod);
+	lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+
+	while (_iCursorPos < 16) {
 		if (iButton != 0) {
 			if (iButton != _iButtonOld) {
 				// BUTTON_ARROW_LEFT and BUTTON_ARROW_RIGHT move the cursor
@@ -221,11 +278,11 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 					}
 				}
 				if (iButton & BUTTON_ARROW_RIGHT) {
-					if (_iCursorPos == 16) {
-						_iCursorPos = 17;
+					if (_iCursorPos == 15) {
+						_iCursorPos = 16;
 					}
 					if (_iCursorPos == 13) {     //   :01 digit minute
-						_iCursorPos = 16;
+						_iCursorPos = 15;
 					}
 					if (_iCursorPos == 12) {     //   :10 digit minute
 						_iCursorPos = 13;
@@ -248,62 +305,65 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 				}
 				if (iButton & BUTTON_ARROW_DOWN) {
 					if (_iCursorPos == 2) {
-						if (stPeriods[iPeriod].temp >= 40) stPeriods[iPeriod].temp -= 40;
+						if (_iTemp >= 40) _iTemp -= 40;
 					}
 					if (_iCursorPos == 3) {
-						if (stPeriods[iPeriod].temp >= 4) stPeriods[iPeriod].temp -= 4;
+						if (_iTemp >= 4) _iTemp -= 4;
 					}
 					if (_iCursorPos == 5) {
-						if (stPeriods[iPeriod].temp >= 1) stPeriods[iPeriod].temp -= 1;
+						if (_iTemp >= 1) _iTemp -= 1;
 					}
 					if (_iCursorPos == 9) {
-						if (stPeriods[iPeriod].time >= 36001) stPeriods[iPeriod].time -= 36000;
+						if (_iTime >= 36001) _iTime -= 36000;
 					}
 					if (_iCursorPos == 10) {
-						if (stPeriods[iPeriod].time >= 3601) stPeriods[iPeriod].time -= 3600;
+						if (_iTime >= 3601) _iTime -= 3600;
 					}
 					if (_iCursorPos == 12) {
-						if (stPeriods[iPeriod].time >= 601) stPeriods[iPeriod].time -= 600;
+						if (_iTime >= 601) _iTime -= 600;
 					}
 					if (_iCursorPos == 13) {
-						if (stPeriods[iPeriod].time >= 61) stPeriods[iPeriod].time -= 60;
+						if (_iTime >= 61) _iTime -= 60;
 					}
 				}
 				if (iButton & BUTTON_ARROW_UP) {
 					if (_iCursorPos == 2) {
-						if (stPeriods[iPeriod].temp <= 359) stPeriods[iPeriod].temp += 40;
+						if (_iTemp <= 359) _iTemp += 40;
 					}
 					if (_iCursorPos == 3) {
-						if (stPeriods[iPeriod].temp <= 395) stPeriods[iPeriod].temp += 4;
+						if (_iTemp <= 395) _iTemp += 4;
 					}
 					if (_iCursorPos == 5) {
-						if (stPeriods[iPeriod].temp <= 398) stPeriods[iPeriod].temp += 1;
+						if (_iTemp <= 398) _iTemp += 1;
 					}
 					if (_iCursorPos == 9) {
-						if (stPeriods[iPeriod].time <= 7200) stPeriods[iPeriod].time += 36000;
+						if (_iTime <= 7200) _iTime += 36000;
 					}
 					if (_iCursorPos == 10) {
-						if (stPeriods[iPeriod].time <= 39600) stPeriods[iPeriod].time += 3600;
+						if (_iTime <= 39600) _iTime += 3600;
 					}
 					if (_iCursorPos == 12) {
-						if (stPeriods[iPeriod].time <= 42600) stPeriods[iPeriod].time += 600;
+						if (_iTime <= 42600) _iTime += 600;
 					}
 					if (_iCursorPos == 13) {
-						if (stPeriods[iPeriod].time <= 42140) stPeriods[iPeriod].time += 60;
+						if (_iTime <= 42140) _iTime += 60;
 					}
 				}
 				_iButtonOld = iButton;
+				// update the display
+				sprintf(_arLCDline, "  %02d.%02d %02d:%02d > ",
+					(_iTemp >> 2),
+					((_iTemp & 0x0003) * 25),
+					(_iTime/3600),
+					(_iTime/60) % 60);
+				lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
+				lcd_gotoxy(_iCursorPos, 1);
 			}
-
-			// update the display
-			sprintf(_arLCDline, "  %02d.%02d %02d:%02d  >",
-				(stPeriods[iPeriod].temp >> 2),
-				((stPeriods[iPeriod].temp & 0x0003) * 25),
-				(stPeriods[iPeriod].time/3600),
-				(stPeriods[iPeriod].time/60) % 60);
-			lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
 		}
 	}
+	stPeriods[iPeriod].temp = _iTemp;
+	stPeriods[iPeriod].time = _iTime;
+
 	return 0;
 }
 
@@ -337,9 +397,8 @@ uint8_t fConfigSetup (struct periods *stPeriods, struct calibration *stCalibrati
     ADCSRA |= _BV(ADEN);                // enable ADC
 
     // setup display
-    lcd_init(LCD_DISP_ON_CURSOR);       // enable display
+    lcd_init(LCD_DISP_ON);			    // enable display
     DDRD |= 0x80;			            // enable pin for background lighting
-    PORTD |= 0x80;		            	// turn on background lighting
 
     // setup custom lcd characters
     static const uint8_t arCustomChar[64] PROGMEM = {
@@ -360,6 +419,7 @@ uint8_t fConfigSetup (struct periods *stPeriods, struct calibration *stCalibrati
 
 	eeprom_read_block((void*)stCalibration, (const void*)0, sizeof(struct calibration));
 	eeprom_read_block((void*)stPeriods, (const void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
+
 /*
 //  DUMMY VALUES FOR TESTING
 	stPeriods[0].temp = 250;
@@ -375,6 +435,11 @@ uint8_t fConfigSetup (struct periods *stPeriods, struct calibration *stCalibrati
 //	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
 */
     sei();                              // enable interrupts
+
+    lcd_gotoxy(0,0); lcd_puts(VERSION);
+    lcd_gotoxy(0,1); lcd_puts(VENDOR);
+	while (iTick < 50) {};
+    LCD_PORT |= 0x80;		            	// turn on background lighting
 
     return 0;
 }

@@ -56,7 +56,11 @@
 #define OUT_LED_GREEN       0x10    // pin C3
 #define OUT_LED_RED         0x20    // pin C4
 
+#define MAX_CALIBRATION		1
 #define MAX_PERIODS         16
+
+#define VERSION				" sous-vide v1.3 "
+#define VENDOR				"(c)2015 ewak.net"
 
 struct calibration {
 	uint16_t zeroC;

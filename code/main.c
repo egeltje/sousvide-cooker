@@ -26,6 +26,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "main.h"
@@ -38,8 +39,10 @@
 int main (void) {
 
 	// declare variables
-	struct calibration _stCalibration;
-	struct periods _stPeriods[MAX_PERIODS];
+	struct calibration *_stCalibration;
+	_stCalibration = (struct calibration *)malloc(MAX_CALIBRATION * sizeof(struct calibration));
+	struct periods *_stPeriods;
+	_stPeriods = (struct periods *)malloc(MAX_PERIODS * sizeof(struct periods));
 	uint8_t  _iPeriod = 0;		// storing current period
 	uint16_t _iTime = 0;		// counting time in seconds
 	uint16_t _iTemp = 0;		// counting temperature in
@@ -48,9 +51,10 @@ int main (void) {
 	uint8_t  _iButtonOld = 0;	// storing previously pressed button
 
 	// setup registers
-    fConfigSetup(&_stPeriods, &_stCalibration);
+    fConfigSetup(_stPeriods, _stCalibration);
 
     // Initial update of the display
+    lcd_clrscr();
 	sprintf(_arLCDline, "%02d.%02d %02d.%02d %01x",
 		(_stPeriods[_iPeriod].temp >> 2),
 		((_stPeriods[_iPeriod].temp & 0x0003) * 25),
@@ -75,7 +79,7 @@ int main (void) {
 				}
 				if (iButton & BUTTON_CONFIG) {
 					if (!(_iStatus & STATUS_RUN)) {
-						fConfig(_stPeriods, &_stCalibration);
+						fConfig(_stPeriods, _stCalibration);
 					}
 				}
 	    		_iButtonOld = iButton;
@@ -126,16 +130,19 @@ int main (void) {
 			if (_iTemp > _stPeriods[_iPeriod].temp) {
 				_iStatus &= ~(STATUS_HEATER);
 				_iStatus |= STATUS_COOLER;
+				lcd_gotoxy(0, 1); lcd_putc(0x43);
 			}
 			// if temp is lower than set temp, switch on the heater, switch off cooler
 			if (_iTemp < _stPeriods[_iPeriod].temp) {
 				_iStatus |= STATUS_HEATER;
 				_iStatus &= ~(STATUS_COOLER);
+				lcd_gotoxy(0, 1); lcd_putc(0x48);
 			}
 			// if temp is set temp, switch off the heater, switch off cooler
 			if (_iTemp == _stPeriods[_iPeriod].temp) {
 				_iStatus &= ~(STATUS_HEATER);
 				_iStatus &= ~(STATUS_COOLER);
+				lcd_gotoxy(0, 1); lcd_putc(0x20);
 			}
 		} else {
 			OUT_PORT &= ~(OUT_LED_GREEN);    // turn off green led
@@ -143,16 +150,17 @@ int main (void) {
 			_iStatus &= ~(STATUS_PUMP);
 			_iStatus &= ~(STATUS_HEATER);
 			_iStatus &= ~(STATUS_COOLER);
+			lcd_gotoxy(0, 1); lcd_putc(0x20);
 		}
 
 		// update the display
-		sprintf(_arLCDline, "  %02d.%02d %02d:%02d:%02d",
+		sprintf(_arLCDline, "%02d.%02d %02d:%02d:%02d",
 			(_iTemp >> 2),
 			((_iTemp & 0x0003) * 25),
 			(_iTime / 3600),
 			(_iTime / 60) % 60,
 			(_iTime) % 60);
-		lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
+		lcd_gotoxy(2, 1); lcd_puts(_arLCDline);
 
 		// if pump status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_PUMP) {
@@ -163,19 +171,14 @@ int main (void) {
 		// if heater status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_HEATER) {
 			OUT_PORT |= OUT_HEATER;
-			lcd_gotoxy(0, 1); lcd_putc(0x48);
 		} else {
 			OUT_PORT &= ~(OUT_HEATER);
 		}
 		// if cooler status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_COOLER) {
 			OUT_PORT |= OUT_COOLER;
-			lcd_gotoxy(0, 1); lcd_putc(0x43);
 		} else {
 			OUT_PORT &= ~(OUT_COOLER);
-		}
-		if (!(_iStatus & STATUS_HEATER) && !(_iStatus & STATUS_COOLER)) {
-			lcd_gotoxy(0, 1); lcd_putc(0x20);
 		}
 	}
 
