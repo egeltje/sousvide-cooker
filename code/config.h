@@ -30,14 +30,13 @@
 #define SAMPLE_FREQUENCY	((1000000 / 1024) / 10)
 //                          ((F_CPU / CPU_PRESCALER / Hz)
 
-extern uint8_t  fConfig (struct periods *stPeriods, struct calibration *stCalibration);
-extern uint8_t  fConfigCalibration (struct calibration *stCalibration);
+extern uint8_t  fConfig (void);
+extern uint8_t  fConfigCalibration (void);
 extern uint16_t fConfigCalibrationMeasurement (uint8_t value);
 extern uint8_t  fConfigMenuChoice (char *pMenu[]);
-extern uint8_t  fConfigPeriods (struct periods *stPeriods);
-extern uint8_t  fConfigPeriodAdd (struct periods *stPeriods, uint8_t iPeriod);
-extern uint8_t  fConfigPeriodEdit (struct periods *stPeriods, uint8_t iPeriod);
-extern uint8_t  fConfigSetup (struct periods *stPeriods, struct calibration *stCalibration);
-
+extern uint8_t  fConfigPeriods (void);
+extern uint8_t  fConfigPeriodAdd (void);
+extern uint8_t  fConfigPeriodEdit (uint8_t iPeriod);
+extern uint8_t  fConfigSetup (void);
 
 #endif /* CONFIG_H_ */

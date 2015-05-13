@@ -26,6 +26,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <avr/io.h>
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
@@ -37,7 +38,7 @@
 /****************************************************************************
  Config routine
  ****************************************************************************/
-uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
+uint8_t fConfig (void) {
 	char *_cMenu[] = {
 			"Periods       >",
 			"Calibration   >",
@@ -51,10 +52,10 @@ uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 
 		switch (fConfigMenuChoice(_cMenu)) {
 		case 0:
-			fConfigPeriods (stPeriods);
+			fConfigPeriods ();
 			break;
 		case 1:
-			fConfigCalibration (stCalibration);
+			fConfigCalibration ();
 			break;
 		case 2:
 			_iExit = 1;
@@ -67,7 +68,7 @@ uint8_t fConfig (struct periods *stPeriods, struct calibration *stCalibration) {
 	return 0;
 }
 
-uint8_t fConfigCalibration (struct calibration *stCalibration) {
+uint8_t fConfigCalibration (void) {
 	char *_cMenu[] = {
 			"0C            >",
 			"100C          >",
@@ -133,7 +134,7 @@ uint16_t fConfigCalibrationMeasurement (uint8_t value) {
     return _iTemp;
 }
 
-uint8_t fConfigPeriods (struct periods *stPeriods) {
+uint8_t fConfigPeriods () {
 	uint8_t _iPeriod = 0;
 	char *_cMenu[] = {
 			"Next          >",
@@ -162,7 +163,7 @@ uint8_t fConfigPeriods (struct periods *stPeriods) {
 			if ((stPeriods[_iPeriod].time == 0) || (_iPeriod >= MAX_PERIODS)) _iPeriod = 0;
 			break;
 		case 1:
-			fConfigPeriodEdit(stPeriods, _iPeriod);
+			fConfigPeriodEdit(_iPeriod);
 			break;
 		case 2:
 			//append
@@ -220,20 +221,20 @@ uint8_t fConfigMenuChoice (char *pMenu[]) {
 /****************************************************************************
  Add period routine
  ****************************************************************************/
-uint8_t fConfigPeriodAdd (struct periods *stPeriods, uint8_t iPeriod) {
+uint8_t fConfigPeriodAdd (void) {
 
-	if (iPeriod < MAX_PERIODS) {
-        fConfigPeriodEdit(stPeriods, iPeriod++);
-    } else {
-        return 1;
-    }
+//	if (iPeriod < MAX_PERIODS) {
+//        fConfigPeriodEdit(iPeriod++);
+//    } else {
+//        return 1;
+//   }
     return 0;
 }
 
 /****************************************************************************
  Edit period routine
  ****************************************************************************/
-uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
+uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
     uint8_t _iCursorPos = 2;             // storing cursor position
     uint8_t _iButtonOld = iButton;
     char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
@@ -242,8 +243,8 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
     uint16_t	_iTime = stPeriods[iPeriod].time;
 
     lcd_clrscr();
-    sprintf(_arLCDline, "Edit period %01x", iPeriod);
-	lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+//    sprintf(_arLCDline, "Edit period %01x", iPeriod);
+//	lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
 
 	while (_iCursorPos < 16) {
 		if (iButton != 0) {
@@ -370,7 +371,7 @@ uint8_t fConfigPeriodEdit(struct periods *stPeriods, uint8_t iPeriod) {
 /****************************************************************************
  config setup routine
  ****************************************************************************/
-uint8_t fConfigSetup (struct periods *stPeriods, struct calibration *stCalibration) {
+uint8_t fConfigSetup (void) {
     uint8_t _i;                         // loop variable
 
     cli();                              // disable interrupts
@@ -416,6 +417,9 @@ uint8_t fConfigSetup (struct periods *stPeriods, struct calibration *stCalibrati
         lcd_data(pgm_read_byte(&arCustomChar[_i]));
     }
     lcd_command(_BV(LCD_CGRAM));
+
+	stCalibration = (struct calibration *)malloc(MAX_CALIBRATION * sizeof(struct calibration));
+	stPeriods = (struct periods *)malloc(MAX_PERIODS * sizeof(struct periods));
 
 	eeprom_read_block((void*)stCalibration, (const void*)0, sizeof(struct calibration));
 	eeprom_read_block((void*)stPeriods, (const void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);

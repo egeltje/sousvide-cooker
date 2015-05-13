@@ -26,7 +26,7 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "main.h"
@@ -39,10 +39,6 @@
 int main (void) {
 
 	// declare variables
-	struct calibration *_stCalibration;
-	_stCalibration = (struct calibration *)malloc(MAX_CALIBRATION * sizeof(struct calibration));
-	struct periods *_stPeriods;
-	_stPeriods = (struct periods *)malloc(MAX_PERIODS * sizeof(struct periods));
 	uint8_t  _iPeriod = 0;		// storing current period
 	uint16_t _iTime = 0;		// counting time in seconds
 	uint16_t _iTemp = 0;		// counting temperature in
@@ -51,18 +47,18 @@ int main (void) {
 	uint8_t  _iButtonOld = 0;	// storing previously pressed button
 
 	// setup registers
-    fConfigSetup(_stPeriods, _stCalibration);
+    fConfigSetup();
 
     // Initial update of the display
     lcd_clrscr();
 	sprintf(_arLCDline, "%02d.%02d %02d.%02d %01x",
-		(_stPeriods[_iPeriod].temp >> 2),
-		((_stPeriods[_iPeriod].temp & 0x0003) * 25),
-		_stPeriods[_iPeriod].time / 3600,
-		_stPeriods[_iPeriod].time / 60,
+		(stPeriods[_iPeriod].temp >> 2),
+		((stPeriods[_iPeriod].temp & 0x0003) * 25),
+		stPeriods[_iPeriod].time / 3600,
+		stPeriods[_iPeriod].time / 60,
 		_iPeriod);
 	lcd_gotoxy(2, 0); lcd_puts(_arLCDline);
-	if (_stPeriods[_iPeriod].loop) {
+	if (stPeriods[_iPeriod].loop) {
 		lcd_gotoxy(15, 0); lcd_putc(0x01);
 	}
 
@@ -77,9 +73,15 @@ int main (void) {
 						_iStatus |= STATUS_RUN;
 					}
 				}
+				if (iButton & BUTTON_RESET) {
+					if (!(_iStatus & STATUS_RUN)) {
+						_iTime = 0;
+						_iPeriod = 0;
+					}
+				}
 				if (iButton & BUTTON_CONFIG) {
 					if (!(_iStatus & STATUS_RUN)) {
-						fConfig(_stPeriods, _stCalibration);
+						fConfig();
 					}
 				}
 	    		_iButtonOld = iButton;
@@ -97,49 +99,56 @@ int main (void) {
 			}
 			// Initial update of the display
 			sprintf(_arLCDline, "  %02d.%02d %02d.%02d %01x",
-				(_stPeriods[_iPeriod].temp >> 2),
-				((_stPeriods[_iPeriod].temp & 0x0003) * 25),
-				_stPeriods[_iPeriod].time / 3600,
-				_stPeriods[_iPeriod].time / 60,
+				(stPeriods[_iPeriod].temp >> 2),
+				((stPeriods[_iPeriod].temp & 0x0003) * 25),
+				stPeriods[_iPeriod].time / 3600,
+				stPeriods[_iPeriod].time / 60,
 				_iPeriod);
 			lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
-			if (_stPeriods[_iPeriod].loop) {
+			if (stPeriods[_iPeriod].loop) {
 				lcd_gotoxy(15, 0); lcd_putc(0x01);
+			} else {
+				lcd_gotoxy(15, 0); lcd_putc(0x20);
 			}
 		}
 		if (_iStatus & STATUS_RUN) {
 			OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
 			OUT_PORT |= OUT_LED_GREEN;	    // turn on green led
 
-			if (_iTime >= _stPeriods[_iPeriod].time) {
-				if (_stPeriods[_iPeriod].loop) {
+			if (_iTime >= stPeriods[_iPeriod].time) {
+				_iTime = 0;
+				if (stPeriods[_iPeriod].loop) {
 					_iPeriod = 0;
 				} else {
 					_iPeriod++;
-				}
-				_iTime = 0;
-				if (_stPeriods[_iPeriod].time == 0) {
-					_iPeriod = 0;
-					_iStatus &= ~(STATUS_RUN);
+					if (_iPeriod > MAX_PERIODS) {
+						_iPeriod = 0;
+						_iStatus &= ~(STATUS_RUN);
+					} else {
+						 if (stPeriods[_iPeriod].time == 0) {
+							 _iPeriod = 0;
+							 _iStatus &= ~(STATUS_RUN);
+						 }
+					}
 				}
 			}
 			// turn on the pump
 			_iStatus |= STATUS_PUMP;
 
 			// if temp is higher than set temp, switch off the heater, switch on cooler
-			if (_iTemp > _stPeriods[_iPeriod].temp) {
+			if (_iTemp > stPeriods[_iPeriod].temp) {
 				_iStatus &= ~(STATUS_HEATER);
 				_iStatus |= STATUS_COOLER;
 				lcd_gotoxy(0, 1); lcd_putc(0x43);
 			}
 			// if temp is lower than set temp, switch on the heater, switch off cooler
-			if (_iTemp < _stPeriods[_iPeriod].temp) {
+			if (_iTemp < stPeriods[_iPeriod].temp) {
 				_iStatus |= STATUS_HEATER;
 				_iStatus &= ~(STATUS_COOLER);
 				lcd_gotoxy(0, 1); lcd_putc(0x48);
 			}
 			// if temp is set temp, switch off the heater, switch off cooler
-			if (_iTemp == _stPeriods[_iPeriod].temp) {
+			if (_iTemp == stPeriods[_iPeriod].temp) {
 				_iStatus &= ~(STATUS_HEATER);
 				_iStatus &= ~(STATUS_COOLER);
 				lcd_gotoxy(0, 1); lcd_putc(0x20);
@@ -154,13 +163,13 @@ int main (void) {
 		}
 
 		// update the display
-		sprintf(_arLCDline, "%02d.%02d %02d:%02d:%02d",
+		sprintf(_arLCDline, "  %02d.%02d %02d:%02d:%02d",
 			(_iTemp >> 2),
 			((_iTemp & 0x0003) * 25),
 			(_iTime / 3600),
 			(_iTime / 60) % 60,
 			(_iTime) % 60);
-		lcd_gotoxy(2, 1); lcd_puts(_arLCDline);
+		lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
 
 		// if pump status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_PUMP) {

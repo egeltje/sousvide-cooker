@@ -40,7 +40,7 @@
 #define KBD_DIR             DDRB
 #define KBD                 PINB
 #define BUTTON_RUN          0x01    // pin B0
-#define BUTTON_NULL         0x02    // pin B1
+#define BUTTON_RESET        0x02    // pin B1
 #define BUTTON_CONFIG       0x04    // pin B2
 #define BUTTON_ARROW_RIGHT  0x08    // pin B3
 #define BUTTON_ARROW_UP     0x10    // pin B4
@@ -67,12 +67,14 @@ struct calibration {
 	uint16_t hundredC;
 	uint16_t coefficient;
 };
+struct calibration *stCalibration;
 
 struct periods {
 	uint16_t temp;
 	uint16_t time;
 	uint8_t  loop;
 };
+struct periods *stPeriods;
 
 volatile uint16_t iTempRead;		// storing read temperature
 volatile uint8_t  iButton;			// storing system states
