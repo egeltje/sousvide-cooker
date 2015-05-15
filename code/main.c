@@ -223,6 +223,6 @@ ISR(TIMER1_COMPA_vect) {
  occurs when analog conversion is completed
  ****************************************************************************/
 ISR(ADC_vect) {
-    iTempRead += ADC; 				// read ADC
+    iTempRead += (ADC - stCalibration->offset) / stCalibration->coefficient;
     KBD_PORT &= ~(BUTTON_LED);      // switch back LED off
 }

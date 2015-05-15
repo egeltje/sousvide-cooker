@@ -49,7 +49,7 @@ uint8_t fConfig (void) {
 
 	while (!_iExit) {
 		lcd_clrscr();
-		lcd_gotoxy(0, 0); lcd_puts("Configuration   ");
+		lcd_gotoxy(0, 0); lcd_puts("Configuration   ");	// Current menu
 
 		switch (fConfigMenuChoice(_cMenu)) {
 		case 0:
@@ -83,7 +83,7 @@ uint8_t fConfigCalibration (void) {
 
 	while (!_iExit) {
 		lcd_clrscr();
-		lcd_gotoxy(0, 0); lcd_puts("Calibration     ");
+		lcd_gotoxy(0, 0); lcd_puts("Calibration     ");	// Current menu
 
 		switch (fConfigMenuChoice(_cMenu)) {
 		case 0:
@@ -100,7 +100,9 @@ uint8_t fConfigCalibration (void) {
 			break;
 		}
 	}
-//	calculate coefficient
+
+	stCalibration->offset = stCalibration->zeroC;
+	stCalibration->coefficient = (stCalibration->hundredC - stCalibration->zeroC) / 100;
 
 	eeprom_write_block((const void*)stCalibration, (void*)sizeof(uint8_t), sizeof(struct calibration));
 
@@ -147,6 +149,11 @@ uint8_t fConfigEEPROM (void) {
 		eeprom_read_block((void*)stCalibration, (const void*)sizeof(uint8_t), sizeof(struct calibration));
 		eeprom_read_block((void*)stPeriods, (const void*)(sizeof(struct calibration) + sizeof(uint8_t)), sizeof(struct periods) * MAX_PERIODS);
 	} else {
+		stCalibration->zeroC = 0;
+		stCalibration->hundredC = 100;
+		stCalibration->offset = 0;
+		stCalibration->coefficient = 1;
+
 		for (_i = 0; _i < MAX_PERIODS; ++_i) {
 			stPeriods[_i].temp = 0;
 			stPeriods[_i].time = 0;
@@ -483,8 +490,24 @@ uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
 }
 
 uint8_t  fConfigReset (void) {
-	eeprom_write_byte((uint8_t*)0, 0);
-	fConfigEEPROM();
+	char *_cMenu[] = {
+			"No            >",
+			"Yes           >",
+			NULL};
+
+	lcd_clrscr();
+	lcd_gotoxy(0, 0); lcd_puts("FACTORY RESET");
+
+	switch (fConfigMenuChoice(_cMenu)) {
+	case 0:
+		break;
+	case 1:
+		eeprom_write_byte((uint8_t*)0, 0);
+		fConfigEEPROM();
+		break;
+	default:
+		break;
+	}
 
 	return 0;
 }
