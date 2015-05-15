@@ -106,6 +106,9 @@ int main (void) {
 
 			_iTemp = iTempRead / 10;
 			iTempRead = 0;
+
+			_iTemp = (_iTemp - stCalibration->offset) / stCalibration->coefficient;
+
 			if (_iTemp >= 400) _iTemp = 399;
 
 			if (_iStatus & STATUS_RUN) {
@@ -223,6 +226,6 @@ ISR(TIMER1_COMPA_vect) {
  occurs when analog conversion is completed
  ****************************************************************************/
 ISR(ADC_vect) {
-    iTempRead += (uint16_t)((ADC - stCalibration->offset) / stCalibration->coefficient);
+    iTempRead += ADC;
     KBD_PORT &= ~(BUTTON_LED);      // switch back LED off
 }
