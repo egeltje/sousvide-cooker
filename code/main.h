@@ -65,6 +65,7 @@
 struct calibration {
 	uint16_t zeroC;
 	uint16_t hundredC;
+	uint16_t offset;
 	uint16_t coefficient;
 } *stCalibration;
 

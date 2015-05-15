@@ -42,6 +42,7 @@ uint8_t fConfig (void) {
 	char *_cMenu[] = {
 			"Periods       >",
 			"Calibration   >",
+			"FACTORY RESET >",
 			"Exit          >",
 			NULL};
 	uint8_t _iExit = 0;
@@ -58,6 +59,9 @@ uint8_t fConfig (void) {
 			fConfigCalibration ();
 			break;
 		case 2:
+			fConfigReset ();
+			break;
+		case 3:
 			_iExit = 1;
 			break;
 		default:
@@ -98,7 +102,7 @@ uint8_t fConfigCalibration (void) {
 	}
 //	calculate coefficient
 
-//	eeprom_write_block((const void*)stCalibration, (void*)0, sizeof(struct calibration));
+	eeprom_write_block((const void*)stCalibration, (void*)sizeof(uint8_t), sizeof(struct calibration));
 
 	return 0;
 }
@@ -134,6 +138,38 @@ uint16_t fConfigCalibrationMeasurement (uint8_t value) {
     }
     return _iTemp;
 }
+
+uint8_t fConfigEEPROM (void) {
+	uint8_t _i = 0;
+	uint8_t _iEEPROMinit = eeprom_read_byte((uint8_t *)0);
+
+	if (_iEEPROMinit) {
+		eeprom_read_block((void*)stCalibration, (const void*)sizeof(uint8_t), sizeof(struct calibration));
+		eeprom_read_block((void*)stPeriods, (const void*)(sizeof(struct calibration) + sizeof(uint8_t)), sizeof(struct periods) * MAX_PERIODS);
+	} else {
+		for (_i = 0; _i < MAX_PERIODS; ++_i) {
+			stPeriods[_i].temp = 0;
+			stPeriods[_i].time = 0;
+			stPeriods[_i].loop = 0;
+		}
+		stPeriods[0].temp = 250;
+		stPeriods[0].time = 60;
+		stPeriods[0].loop = 0;
+		stPeriods[1].temp = 200;
+		stPeriods[1].time = 60;
+		stPeriods[1].loop = 1;
+
+		eeprom_write_byte((uint8_t*)0, 1);
+		eeprom_write_block((const void*)stCalibration, (void*)sizeof(uint8_t), sizeof(uint8_t));
+		eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
+	}
+	return 0;
+}
+
+uint8_t fConfigError (char *pMessage[]) {
+	return 0;
+}
+
 
 uint8_t fConfigMenuChoice (char *pMenu[]) {
 	uint8_t _iMenuOption = 0;
@@ -181,7 +217,7 @@ uint8_t fConfigPeriods () {
 	char *_cMenu[] = {
 			"Next          >",
 			"Edit          >",
-			"Append        >",
+			"Insert        >",
 			"Delete        >",
 			"Exit          >",
 			NULL};
@@ -195,7 +231,7 @@ uint8_t fConfigPeriods () {
 			(stPeriods[_iPeriod].temp >> 2),
 			((stPeriods[_iPeriod].temp & 0x0003) * 25),
 			stPeriods[_iPeriod].time / 3600,
-			stPeriods[_iPeriod].time / 60,
+			(stPeriods[_iPeriod].time / 60) % 60,
 			_iPeriod);
 		lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
 		if (stPeriods[_iPeriod].loop) {
@@ -213,10 +249,10 @@ uint8_t fConfigPeriods () {
 			fConfigPeriodEdit(_iPeriod);
 			break;
 		case 2:
-			//append
+			fConfigPeriodAdd(_iPeriod);
 			break;
 		case 3:
-			//delete
+			fConfigPeriodDelete(_iPeriod);
 			break;
 		case 4:
 			_iExit = 1;
@@ -227,7 +263,7 @@ uint8_t fConfigPeriods () {
 		}
 	}
 
-	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
+	eeprom_write_block((const void*)stPeriods, (void*)(sizeof(struct calibration) + sizeof(uint8_t)), sizeof(struct periods) * MAX_PERIODS);
 
 	return 0;
 }
@@ -235,14 +271,42 @@ uint8_t fConfigPeriods () {
 /****************************************************************************
  Add period routine
  ****************************************************************************/
-uint8_t fConfigPeriodAdd (void) {
+uint8_t fConfigPeriodAdd (uint8_t iPeriod) {
+	uint8_t _iPeriodLast = 0;
+	while ((stPeriods[_iPeriodLast].time != 0) && (_iPeriodLast <= MAX_PERIODS)) _iPeriodLast++;
 
-//	if (iPeriod < MAX_PERIODS) {
-//        fConfigPeriodEdit(iPeriod++);
-//    } else {
-//        return 1;
-//   }
-    return 0;
+	if (_iPeriodLast < MAX_PERIODS) {
+		while (_iPeriodLast > iPeriod) {
+			stPeriods[_iPeriodLast].temp = stPeriods[_iPeriodLast - 1].temp;
+			stPeriods[_iPeriodLast].time = stPeriods[_iPeriodLast - 1].time;
+			stPeriods[_iPeriodLast].loop = stPeriods[_iPeriodLast - 1].loop;
+			_iPeriodLast--;
+		}
+
+		stPeriods[iPeriod].temp = 0;
+		stPeriods[iPeriod].time = 0;
+		stPeriods[iPeriod].loop = 0;
+		fConfigPeriodEdit(iPeriod);
+	}
+
+	return 0;
+}
+
+/****************************************************************************
+ Delete period routine
+ ****************************************************************************/
+uint8_t fConfigPeriodDelete (uint8_t iPeriod) {
+	while (iPeriod < MAX_PERIODS) {
+		stPeriods[iPeriod].temp = stPeriods[iPeriod + 1].temp;
+		stPeriods[iPeriod].time = stPeriods[iPeriod + 1].time;
+		stPeriods[iPeriod].loop = stPeriods[iPeriod + 1].loop;
+		iPeriod++;
+	}
+	stPeriods[iPeriod].temp = 0;
+	stPeriods[iPeriod].time = 0;
+	stPeriods[iPeriod].loop = 0;
+
+	return 0;
 }
 
 /****************************************************************************
@@ -256,6 +320,7 @@ uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
 
     uint16_t	_iTemp = stPeriods[_iPeriod].temp;
     uint16_t	_iTime = stPeriods[_iPeriod].time;
+    uint8_t		_iLoop = stPeriods[_iPeriod].loop;
 
     lcd_command(LCD_DISP_ON_CURSOR);	    // enable display, enable cursor
     lcd_clrscr();
@@ -384,16 +449,45 @@ uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
 			}
 		}
 	}
-	// ask for loop
+
+	char *_cMenu[] = {
+			"No            >",
+			"Yes           >",
+			NULL};
+
+	lcd_clrscr();
+	if (_iLoop) {
+		lcd_gotoxy(0, 0); lcd_puts("Loop (cur = yes)");
+	} else {
+		lcd_gotoxy(0, 0); lcd_puts("Loop (cur = no)");
+	}
+
+	switch (fConfigMenuChoice(_cMenu)) {
+	case 0:
+		_iLoop = 0;
+		break;
+	case 1:
+		_iLoop = 1;
+		break;
+	default:
+		break;
+	}
 
     lcd_command(LCD_DISP_ON);			    // enable display, disable cursor
 
 	stPeriods[_iPeriod].temp = _iTemp;
 	stPeriods[_iPeriod].time = _iTime;
+	stPeriods[_iPeriod].loop = _iLoop;
 
 	return 0;
 }
 
+uint8_t  fConfigReset (void) {
+	eeprom_write_byte((uint8_t*)0, 0);
+	fConfigEEPROM();
+
+	return 0;
+}
 /****************************************************************************
  config setup routine
  ****************************************************************************/
@@ -447,28 +541,8 @@ uint8_t fConfigSetup (void) {
 	stCalibration = (struct calibration *)malloc(MAX_CALIBRATION * sizeof(struct calibration));
 	stPeriods = (struct periods *)malloc(MAX_PERIODS * sizeof(struct periods));
 
-	eeprom_read_block((void*)stCalibration, (const void*)0, sizeof(struct calibration));
-	eeprom_read_block((void*)stPeriods, (const void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
+	fConfigEEPROM();
 
-/*
-//  DUMMY VALUES FOR TESTING
-	for (_i = 0; _i < MAX_PERIODS; ++_i) {
-		stPeriods[_i].temp = 0;
-		stPeriods[_i].time = 0;
-		stPeriods[_i].loop = 0;
-	}
-	stPeriods[0].temp = 250;
-	stPeriods[0].time = 60;
-	stPeriods[0].loop = 0;
-	stPeriods[1].temp = 160;
-	stPeriods[1].time = 120;
-	stPeriods[1].loop = 1;
-	stPeriods[2].temp = 0;
-	stPeriods[2].time = 0;
-	stPeriods[2].loop = 0;
-	eeprom_write_block((const void*)stCalibration, (void*)0, sizeof(struct calibration));
-	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
-*/
     sei();                              // enable interrupts
 
     lcd_gotoxy(0,0); lcd_puts(VERSION);

@@ -33,10 +33,14 @@
 extern uint8_t  fConfig (void);
 extern uint8_t  fConfigCalibration (void);
 extern uint16_t fConfigCalibrationMeasurement (uint8_t value);
+extern uint8_t  fConfigEEPROM (void);
+extern uint8_t  fConfigError (char *pMessage[]);
 extern uint8_t  fConfigMenuChoice (char *pMenu[]);
 extern uint8_t  fConfigPeriods (void);
-extern uint8_t  fConfigPeriodAdd (void);
+extern uint8_t  fConfigPeriodAdd (uint8_t iPeriod);
+extern uint8_t  fConfigPeriodDelete (uint8_t iPeriod);
 extern uint8_t  fConfigPeriodEdit (uint8_t iPeriod);
+extern uint8_t  fConfigReset (void);
 extern uint8_t  fConfigSetup (void);
 
 #endif /* CONFIG_H_ */

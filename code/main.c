@@ -84,6 +84,20 @@ int main (void) {
 						fConfig();
 					}
 				}
+				if (iButton & BUTTON_ARROW_RIGHT) {
+					if (!(_iStatus & STATUS_RUN)) {
+						if (_iPeriod < (MAX_PERIODS - 1)) {
+							_iPeriod++;
+						}
+					}
+				}
+				if (iButton & BUTTON_ARROW_LEFT) {
+					if (!(_iStatus & STATUS_RUN)) {
+						if (_iPeriod > 0) {
+							_iPeriod--;
+						}
+					}
+				}
 	    		_iButtonOld = iButton;
 	    	}
 	    }
@@ -96,19 +110,6 @@ int main (void) {
 
 			if (_iStatus & STATUS_RUN) {
 				_iTime++;
-			}
-			// Initial update of the display
-			sprintf(_arLCDline, "  %02d.%02d %02d.%02d %01x",
-				(stPeriods[_iPeriod].temp >> 2),
-				((stPeriods[_iPeriod].temp & 0x0003) * 25),
-				stPeriods[_iPeriod].time / 3600,
-				stPeriods[_iPeriod].time / 60,
-				_iPeriod);
-			lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
-			if (stPeriods[_iPeriod].loop) {
-				lcd_gotoxy(15, 0); lcd_putc(0x01);
-			} else {
-				lcd_gotoxy(15, 0); lcd_putc(0x20);
 			}
 		}
 		if (_iStatus & STATUS_RUN) {
@@ -163,6 +164,18 @@ int main (void) {
 		}
 
 		// update the display
+		sprintf(_arLCDline, "  %02d.%02d %02d.%02d %01x",
+			(stPeriods[_iPeriod].temp >> 2),
+			((stPeriods[_iPeriod].temp & 0x0003) * 25),
+			stPeriods[_iPeriod].time / 3600,
+			(stPeriods[_iPeriod].time / 60) % 60,
+			_iPeriod);
+		lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+		if (stPeriods[_iPeriod].loop) {
+			lcd_gotoxy(15, 0); lcd_putc(0x01);
+		} else {
+			lcd_gotoxy(15, 0); lcd_putc(0x20);
+		}
 		sprintf(_arLCDline, " %02d.%02d %02d:%02d:%02d",
 			(_iTemp >> 2),
 			((_iTemp & 0x0003) * 25),
