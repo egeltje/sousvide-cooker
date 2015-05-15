@@ -66,15 +66,13 @@ struct calibration {
 	uint16_t zeroC;
 	uint16_t hundredC;
 	uint16_t coefficient;
-};
-struct calibration *stCalibration;
+} *stCalibration;
 
 struct periods {
 	uint16_t temp;
 	uint16_t time;
 	uint8_t  loop;
-};
-struct periods *stPeriods;
+} *stPeriods;
 
 volatile uint16_t iTempRead;		// storing read temperature
 volatile uint8_t  iButton;			// storing system states

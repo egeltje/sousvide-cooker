@@ -65,6 +65,7 @@ uint8_t fConfig (void) {
 			break;
 		}
 	}
+
 	return 0;
 }
 
@@ -134,6 +135,47 @@ uint16_t fConfigCalibrationMeasurement (uint8_t value) {
     return _iTemp;
 }
 
+uint8_t fConfigMenuChoice (char *pMenu[]) {
+	uint8_t _iMenuOption = 0;
+	uint8_t _iMenuLength = 0;
+	uint8_t _iButtonOld  = iButton;
+	char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
+    lcd_command(LCD_DISP_ON_CURSOR);	    // enable display, enable cursor
+
+	while (pMenu[_iMenuLength] != NULL) _iMenuLength++;
+
+	sprintf(_arLCDline, "%s", pMenu[_iMenuOption]);
+	lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
+	lcd_gotoxy(14, 1);
+
+	while (_iMenuLength > 0) {
+
+		if (iButton != 0) {
+			if (iButton != _iButtonOld) {    // new button pressed
+				if (iButton & BUTTON_ARROW_RIGHT) {
+					_iMenuLength = 0;
+				}
+				if (iButton & BUTTON_ARROW_UP) {
+					if (_iMenuOption == 0) _iMenuOption = _iMenuLength;
+					_iMenuOption--;
+				}
+				if (iButton & BUTTON_ARROW_DOWN) {
+					_iMenuOption++;
+					if (_iMenuOption >= _iMenuLength) _iMenuOption = 0;
+				}
+				sprintf(_arLCDline, "%s", pMenu[_iMenuOption]);
+				lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
+				lcd_gotoxy(14, 1);
+
+				_iButtonOld = iButton;
+			}
+		}
+	}
+    lcd_init(LCD_DISP_ON);		    	// enable display, disable cursor
+
+	return _iMenuOption;
+}
+
 uint8_t fConfigPeriods () {
 	uint8_t _iPeriod = 0;
 	char *_cMenu[] = {
@@ -156,6 +198,11 @@ uint8_t fConfigPeriods () {
 			stPeriods[_iPeriod].time / 60,
 			_iPeriod);
 		lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+		if (stPeriods[_iPeriod].loop) {
+			lcd_gotoxy(15, 0); lcd_putc(0x01);
+		} else {
+			lcd_gotoxy(15, 0); lcd_putc(0x20);
+		}
 
 		switch (fConfigMenuChoice(_cMenu)) {
 		case 0:
@@ -180,43 +227,10 @@ uint8_t fConfigPeriods () {
 		}
 	}
 
-//	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
+	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
 
 	return 0;
 }
-
-uint8_t fConfigMenuChoice (char *pMenu[]) {
-	uint8_t _iMenuOption = 0;
-	uint8_t _iMenuLength = 0;
-	uint8_t _iButtonOld  = iButton;
-	char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
-
-	while (pMenu[_iMenuLength] != NULL) _iMenuLength++;
-
-	while (_iMenuLength > 0) {
-		sprintf(_arLCDline, "%s", pMenu[_iMenuOption]);
-		lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
-
-		if (iButton != 0) {
-			if (iButton != _iButtonOld) {    // new button pressed
-				if (iButton & BUTTON_ARROW_RIGHT) {
-					_iMenuLength = 0;
-				}
-				if (iButton & BUTTON_ARROW_UP) {
-					_iMenuOption++;
-					if (_iMenuOption >= _iMenuLength) _iMenuOption = 0;
-				}
-				if (iButton & BUTTON_ARROW_DOWN) {
-					if (_iMenuOption == 0) _iMenuOption = _iMenuLength;
-					_iMenuOption--;
-				}
-				_iButtonOld = iButton;
-			}
-		}
-	}
-	return _iMenuOption;
-}
-
 
 /****************************************************************************
  Add period routine
@@ -237,24 +251,25 @@ uint8_t fConfigPeriodAdd (void) {
 uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
     uint8_t _iCursorPos = 2;             // storing cursor position
     uint8_t _iButtonOld = iButton;
+    uint8_t _iPeriod = iPeriod;
     char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
 
-    uint16_t	_iTemp = stPeriods[iPeriod].temp;
-    uint16_t	_iTime = stPeriods[iPeriod].time;
+    uint16_t	_iTemp = stPeriods[_iPeriod].temp;
+    uint16_t	_iTime = stPeriods[_iPeriod].time;
 
+    lcd_command(LCD_DISP_ON_CURSOR);	    // enable display, enable cursor
     lcd_clrscr();
-//    sprintf(_arLCDline, "Edit period %01x", iPeriod);
-//	lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+    sprintf(_arLCDline, "Edit period %01x", _iPeriod);
+	lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+	if (stPeriods[_iPeriod].loop) {
+		lcd_gotoxy(15, 0); lcd_putc(0x01);
+	} else {
+		lcd_gotoxy(15, 0); lcd_putc(0x20);
+	}
 
-	while (_iCursorPos < 16) {
+	while (_iCursorPos < 15) {
 		if (iButton != 0) {
 			if (iButton != _iButtonOld) {
-				// BUTTON_ARROW_LEFT and BUTTON_ARROW_RIGHT move the cursor
-				// position: pos2=decimals, pos3=single digits, pos5=fraction
-				// (pos 4 is decimal point on the display)
-				// BUTTON_ARROW_UP and BUTTON_ARROW_DOWN change the value of
-				// the number the cursor is at. There are 4 steps in a single
-				// degree.
 				if (iButton & BUTTON_ARROW_LEFT) {
 					if (_iCursorPos == 3) {      // 10    digit temp
 						_iCursorPos = 2;
@@ -262,40 +277,40 @@ uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
 					if (_iCursorPos == 5) {      //  1    digit temp
 						_iCursorPos = 3;
 					}
-					if (_iCursorPos == 9) {      //   .25 digit temp
+					if (_iCursorPos == 8) {      //   .25 digit temp
 						_iCursorPos = 5;
 					}
-					if (_iCursorPos == 10) {     // 10    digit hour
+					if (_iCursorPos == 9) {     // 10    digit hour
+						_iCursorPos = 8;
+					}
+					if (_iCursorPos == 11) {     //  1    digit hour
 						_iCursorPos = 9;
 					}
-					if (_iCursorPos == 12) {     //  1    digit hour
-						_iCursorPos = 10;
+					if (_iCursorPos == 12) {     //   :10 digit minute
+						_iCursorPos = 11;
 					}
-					if (_iCursorPos == 13) {     //   :10 digit minute
+					if (_iCursorPos == 14) {     //   :01 digit minute
 						_iCursorPos = 12;
-					}
-					if (_iCursorPos == 16) {     //   :01 digit minute
-						_iCursorPos = 13;
 					}
 				}
 				if (iButton & BUTTON_ARROW_RIGHT) {
-					if (_iCursorPos == 15) {
-						_iCursorPos = 16;
-					}
-					if (_iCursorPos == 13) {     //   :01 digit minute
+					if (_iCursorPos == 14) {
 						_iCursorPos = 15;
 					}
-					if (_iCursorPos == 12) {     //   :10 digit minute
-						_iCursorPos = 13;
+					if (_iCursorPos == 12) {     //   :01 digit minute
+						_iCursorPos = 14;
 					}
-					if (_iCursorPos == 10) {     //  1    digit hour
+					if (_iCursorPos == 11) {     //   :10 digit minute
 						_iCursorPos = 12;
 					}
-					if (_iCursorPos == 9) {      // 10    digit hour
-						_iCursorPos = 10;
+					if (_iCursorPos == 9) {     //  1    digit hour
+						_iCursorPos = 11;
+					}
+					if (_iCursorPos == 8) {      // 10    digit hour
+						_iCursorPos = 9;
 					}
 					if (_iCursorPos == 5) {      //   .25 digit temp
-						_iCursorPos = 9;
+						_iCursorPos = 8;
 					}
 					if (_iCursorPos == 3) {      //  1    digit temp
 						_iCursorPos = 5;
@@ -314,16 +329,16 @@ uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
 					if (_iCursorPos == 5) {
 						if (_iTemp >= 1) _iTemp -= 1;
 					}
-					if (_iCursorPos == 9) {
+					if (_iCursorPos == 8) {
 						if (_iTime >= 36001) _iTime -= 36000;
 					}
-					if (_iCursorPos == 10) {
+					if (_iCursorPos == 9) {
 						if (_iTime >= 3601) _iTime -= 3600;
 					}
-					if (_iCursorPos == 12) {
+					if (_iCursorPos == 11) {
 						if (_iTime >= 601) _iTime -= 600;
 					}
-					if (_iCursorPos == 13) {
+					if (_iCursorPos == 12) {
 						if (_iTime >= 61) _iTime -= 60;
 					}
 				}
@@ -337,21 +352,28 @@ uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
 					if (_iCursorPos == 5) {
 						if (_iTemp <= 398) _iTemp += 1;
 					}
-					if (_iCursorPos == 9) {
+					if (_iCursorPos == 8) {
 						if (_iTime <= 7200) _iTime += 36000;
 					}
-					if (_iCursorPos == 10) {
+					if (_iCursorPos == 9) {
 						if (_iTime <= 39600) _iTime += 3600;
 					}
-					if (_iCursorPos == 12) {
+					if (_iCursorPos == 11) {
 						if (_iTime <= 42600) _iTime += 600;
 					}
-					if (_iCursorPos == 13) {
+					if (_iCursorPos == 12) {
 						if (_iTime <= 42140) _iTime += 60;
 					}
 				}
 				_iButtonOld = iButton;
 				// update the display
+				sprintf(_arLCDline, "Edit period %01x", _iPeriod);
+					lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
+					if (stPeriods[_iPeriod].loop) {
+						lcd_gotoxy(15, 0); lcd_putc(0x01);
+					} else {
+						lcd_gotoxy(15, 0); lcd_putc(0x20);
+					}
 				sprintf(_arLCDline, "  %02d.%02d %02d:%02d > ",
 					(_iTemp >> 2),
 					((_iTemp & 0x0003) * 25),
@@ -362,8 +384,12 @@ uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
 			}
 		}
 	}
-	stPeriods[iPeriod].temp = _iTemp;
-	stPeriods[iPeriod].time = _iTime;
+	// ask for loop
+
+    lcd_command(LCD_DISP_ON);			    // enable display, disable cursor
+
+	stPeriods[_iPeriod].temp = _iTemp;
+	stPeriods[_iPeriod].time = _iTime;
 
 	return 0;
 }
@@ -426,6 +452,11 @@ uint8_t fConfigSetup (void) {
 
 /*
 //  DUMMY VALUES FOR TESTING
+	for (_i = 0; _i < MAX_PERIODS; ++_i) {
+		stPeriods[_i].temp = 0;
+		stPeriods[_i].time = 0;
+		stPeriods[_i].loop = 0;
+	}
 	stPeriods[0].temp = 250;
 	stPeriods[0].time = 60;
 	stPeriods[0].loop = 0;
@@ -435,14 +466,14 @@ uint8_t fConfigSetup (void) {
 	stPeriods[2].temp = 0;
 	stPeriods[2].time = 0;
 	stPeriods[2].loop = 0;
-//	eeprom_write_block((const void*)stCalibration, (void*)0, sizeof(struct calibration));
-//	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
+	eeprom_write_block((const void*)stCalibration, (void*)0, sizeof(struct calibration));
+	eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
 */
     sei();                              // enable interrupts
 
     lcd_gotoxy(0,0); lcd_puts(VERSION);
     lcd_gotoxy(0,1); lcd_puts(VENDOR);
-	while (iTick < 50) {};
+	while (iTick < 25) {};
     LCD_PORT |= 0x80;		            	// turn on background lighting
 
     return 0;
