@@ -167,7 +167,7 @@ uint8_t fConfigEEPROM (void) {
 		stPeriods[1].loop = 1;
 
 		eeprom_write_byte((uint8_t*)0, 1);
-		eeprom_write_block((const void*)stCalibration, (void*)sizeof(uint8_t), sizeof(uint8_t));
+		eeprom_write_block((const void*)stCalibration, (void*)sizeof(uint8_t), sizeof(struct calibration));
 		eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
 	}
 	return 0;
