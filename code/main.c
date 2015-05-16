@@ -41,8 +41,11 @@ int main (void) {
 	// declare variables
 	uint8_t  _iPeriod = 0;		// storing current period
 	uint16_t _iTime = 0;		// counting time in seconds
-	uint16_t _iTemp = 0;		// counting temperature in
-	uint8_t  _iStatus;			// storing system states
+	uint16_t _iTemp = 0;		// current temperature
+	uint16_t _iTempStart = 0;	// temperature at start of period
+	float 	 _dTempGrad = 0;	// temperature gradient in period
+	uint16_t _iTempTime = 0;	// set temperature at given time
+	uint8_t  _iStatus = 0;		// storing system states
 	char     _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
 	uint8_t  _iButtonOld = 0;	// storing previously pressed button
 
@@ -104,16 +107,16 @@ int main (void) {
 		if (iTick >= 10) {
 			iTick = 0;
 
-			_iTemp = iTempRead / 10;
-			iTempRead = 0;
-
-			_iTemp = (_iTemp - stCalibration->offset) / stCalibration->coefficient;
-
-			if (_iTemp >= 400) _iTemp = 399;
-
 			if (_iStatus & STATUS_RUN) {
 				_iTime++;
 			}
+
+			_iTemp = iTempRead / 10;
+			iTempRead = 0;
+			_iTemp = (_iTemp - stCalibration->offset) / stCalibration->coefficient;
+			if (_iTemp >= 400) _iTemp = 399;
+
+			_iTempTime = (_dTempGrad * _iTime) + _iTempStart;
 		}
 		if (_iStatus & STATUS_RUN) {
 			OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
@@ -121,6 +124,7 @@ int main (void) {
 
 			if (_iTime >= stPeriods[_iPeriod].time) {
 				_iTime = 0;
+
 				if (stPeriods[_iPeriod].loop) {
 					_iPeriod = 0;
 				} else {
@@ -135,6 +139,8 @@ int main (void) {
 						 }
 					}
 				}
+				_iTempStart = _iTemp;
+				_dTempGrad = (stPeriods[_iPeriod].temp - _iTempStart) / stPeriods[_iPeriod].time;
 			}
 			// turn on the pump
 			_iStatus |= STATUS_PUMP;

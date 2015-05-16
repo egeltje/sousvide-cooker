@@ -145,10 +145,7 @@ uint8_t fConfigEEPROM (void) {
 	uint8_t _i = 0;
 	uint8_t _iEEPROMinit = eeprom_read_byte((uint8_t *)0);
 
-	if (_iEEPROMinit) {
-		eeprom_read_block((void*)stCalibration, (const void*)sizeof(uint8_t), sizeof(struct calibration));
-		eeprom_read_block((void*)stPeriods, (const void*)(sizeof(struct calibration) + sizeof(uint8_t)), sizeof(struct periods) * MAX_PERIODS);
-	} else {
+	if (_iEEPROMinit == 0) {
 		stCalibration->zeroC = 0;
 		stCalibration->hundredC = 100;
 		stCalibration->offset = 0;
@@ -166,9 +163,12 @@ uint8_t fConfigEEPROM (void) {
 		stPeriods[1].time = 60;
 		stPeriods[1].loop = 1;
 
-		eeprom_write_byte((uint8_t*)0, 1);
+		eeprom_write_byte((uint8_t *)0, 1);
 		eeprom_write_block((const void*)stCalibration, (void*)sizeof(uint8_t), sizeof(struct calibration));
-		eeprom_write_block((const void*)stPeriods, (void*)sizeof(struct calibration), sizeof(struct periods) * MAX_PERIODS);
+		eeprom_write_block((const void*)stPeriods, (void*)(sizeof(struct calibration) + sizeof(uint8_t)), sizeof(struct periods) * MAX_PERIODS);
+	} else {
+		eeprom_read_block((void*)stCalibration, (const void*)sizeof(uint8_t), sizeof(struct calibration));
+		eeprom_read_block((void*)stPeriods, (const void*)(sizeof(struct calibration) + sizeof(uint8_t)), sizeof(struct periods) * MAX_PERIODS);
 	}
 	return 0;
 }
