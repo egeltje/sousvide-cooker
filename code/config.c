@@ -31,9 +31,10 @@
 #include <avr/eeprom.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
-#include "main.h"
-#include "lcd.h"
 #include "config.h"
+#include "display.h"
+#include "lcd.h"
+#include "main.h"
 
 /****************************************************************************
  Config routine
@@ -147,7 +148,7 @@ uint8_t fConfigEEPROM (void) {
 
 	if (_iEEPROMinit == 0) {
 		stCalibration->zeroC = 0;
-		stCalibration->hundredC = 100;
+		stCalibration->hundredC = 399;
 		stCalibration->offset = 0;
 		stCalibration->coefficient = 1;
 
@@ -231,21 +232,9 @@ uint8_t fConfigPeriods () {
 	uint8_t _iExit = 0;
 
 	while (!_iExit) {
-		char _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
 
 		lcd_clrscr();
-		sprintf(_arLCDline, "  %02d.%02d %02d.%02d %01x",
-			(stPeriods[_iPeriod].temp >> 2),
-			((stPeriods[_iPeriod].temp & 0x0003) * 25),
-			stPeriods[_iPeriod].time / 3600,
-			(stPeriods[_iPeriod].time / 60) % 60,
-			_iPeriod);
-		lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
-		if (stPeriods[_iPeriod].loop) {
-			lcd_gotoxy(15, 0); lcd_putc(0x01);
-		} else {
-			lcd_gotoxy(15, 0); lcd_putc(0x20);
-		}
+		fDisplayPeriod(_iPeriod, 0);
 
 		switch (fConfigMenuChoice(_cMenu)) {
 		case 0:

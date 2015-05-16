@@ -26,12 +26,12 @@
  */
 
 #include <stdio.h>
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "main.h"
-#include "lcd.h"
 #include "config.h"
+#include "display.h"
+#include "lcd.h"
 
 /****************************************************************************
  main program
@@ -43,10 +43,8 @@ int main (void) {
 	uint16_t _iTime = 0;		// counting time in seconds
 	uint16_t _iTemp = 0;		// current temperature
 	uint16_t _iTempStart = 0;	// temperature at start of period
-	float 	 _dTempGrad = 0;	// temperature gradient in period
-	uint16_t _iTempTime = 0;	// set temperature at given time
+	uint16_t _iTempD = 0;		// set temperature at given time
 	uint8_t  _iStatus = 0;		// storing system states
-	char     _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
 	uint8_t  _iButtonOld = 0;	// storing previously pressed button
 
 	// setup registers
@@ -54,16 +52,7 @@ int main (void) {
 
         // Initial update of the display
     lcd_clrscr();
-	sprintf(_arLCDline, "  %02d.%02d %02d.%02d %01x",
-		(stPeriods[_iPeriod].temp >> 2),
-		((stPeriods[_iPeriod].temp & 0x0003) * 25),
-		stPeriods[_iPeriod].time / 3600,
-		stPeriods[_iPeriod].time / 60,
-		_iPeriod);
-	lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
-	if (stPeriods[_iPeriod].loop) {
-		lcd_gotoxy(15, 0); lcd_putc(0x01);
-	}
+    fDisplayPeriod(_iPeriod, 0);
 
     // run main program
     while (1) {
@@ -107,16 +96,13 @@ int main (void) {
 		if (iTick >= 10) {
 			iTick = 0;
 
-			if (_iStatus & STATUS_RUN) {
-				_iTime++;
-			}
+			if (_iStatus & STATUS_RUN) _iTime++;
 
-			_iTemp = iTempRead / 10;
-			iTempRead = 0;
-			_iTemp = (_iTemp - stCalibration->offset) / stCalibration->coefficient;
+			_iTemp = ((iTempRead / 10) - stCalibration->offset) / stCalibration->coefficient;
 			if (_iTemp >= 400) _iTemp = 399;
+			iTempRead = 0;
 
-			_iTempTime = (_dTempGrad * _iTime) + _iTempStart;
+			_iTempD = (((stPeriods[_iPeriod].temp - _iTempStart) / stPeriods[_iPeriod].time) * _iTime) + _iTempStart;
 		}
 		if (_iStatus & STATUS_RUN) {
 			OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
@@ -124,6 +110,7 @@ int main (void) {
 
 			if (_iTime >= stPeriods[_iPeriod].time) {
 				_iTime = 0;
+				_iTempStart = stPeriods[_iPeriod].temp;
 
 				if (stPeriods[_iPeriod].loop) {
 					_iPeriod = 0;
@@ -139,8 +126,6 @@ int main (void) {
 						 }
 					}
 				}
-				_iTempStart = _iTemp;
-				_dTempGrad = (stPeriods[_iPeriod].temp - _iTempStart) / stPeriods[_iPeriod].time;
 			}
 			// turn on the pump
 			_iStatus |= STATUS_PUMP;
@@ -173,25 +158,8 @@ int main (void) {
 		}
 
 		// update the display
-		sprintf(_arLCDline, "  %02d.%02d %02d.%02d %01x",
-			(stPeriods[_iPeriod].temp >> 2),
-			((stPeriods[_iPeriod].temp & 0x0003) * 25),
-			stPeriods[_iPeriod].time / 3600,
-			(stPeriods[_iPeriod].time / 60) % 60,
-			_iPeriod);
-		lcd_gotoxy(0, 0); lcd_puts(_arLCDline);
-		if (stPeriods[_iPeriod].loop) {
-			lcd_gotoxy(15, 0); lcd_putc(0x01);
-		} else {
-			lcd_gotoxy(15, 0); lcd_putc(0x20);
-		}
-		sprintf(_arLCDline, " %02d.%02d %02d:%02d:%02d",
-			(_iTemp >> 2),
-			((_iTemp & 0x0003) * 25),
-			(_iTime / 3600),
-			(_iTime / 60) % 60,
-			(_iTime) % 60);
-		lcd_gotoxy(1, 1); lcd_puts(_arLCDline);
+		fDisplayPeriod(_iPeriod, 0);
+		fDisplayActual(_iTemp, _iTime, 1);
 
 		// if pump status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_PUMP) {
