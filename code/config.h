@@ -32,7 +32,7 @@
 
 extern uint8_t  fConfig (void);
 extern uint8_t  fConfigCalibration (void);
-extern uint16_t fConfigCalibrationMeasurement (uint8_t value);
+extern uint16_t fConfigCalibrationMeasurement (void);
 extern uint8_t  fConfigEEPROM (void);
 extern uint8_t  fConfigError (char *pMessage[]);
 extern uint8_t  fConfigMenuChoice (char *pMenu[]);

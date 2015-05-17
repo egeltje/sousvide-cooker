@@ -11,31 +11,34 @@
 #include "lcd.h"
 
 uint8_t fDisplayActualLine(uint16_t iTemp, uint16_t iTime, uint8_t iStatus, uint8_t iLine) {
-	fDisplayTemp(iTemp, 0, 1);
-	fDisplayStatus(iStatus, 4, 1);
-	fDisplayTime(iTime, 8, 1, 0);
+	fDisplayTemp(iTemp, 0, iLine);
+	fDisplayStatus(iStatus, 4, iLine);
+	fDisplayTime(iTime, 8, iLine, DISPLAY_TIME_LONG);
 	return 0;
 }
 
 uint8_t fDisplayPeriodLine(uint8_t iPeriod, uint8_t iLine) {
-	fDisplayTemp(stPeriods[iPeriod].temp, 4, 0);
-	fDisplayTime(stPeriods[iPeriod].time, 8, 0, 1);
-	fDisplayPeriod(iPeriod, 14, 0);
-	fDisplayLoop(stPeriods[iPeriod].loop, 15, 0);
+	fDisplayTemp(stPeriods[iPeriod].temp, 4, iLine);
+	fDisplayTime(stPeriods[iPeriod].time, 8, iLine, DISPLAY_TIME_SHORT);
+	fDisplayPeriod(iPeriod, 14, iLine);
+	fDisplayLoop(stPeriods[iPeriod].loop, 13, iLine);
 	return 0;
 }
 
-uint8_t fDisplayTemp(uint8_t iTemp, uint8_t ix, uint8_t iy) {
-	char    _arLCDline[LCD_DISP_LENGTH];      // array for lcd line formatting
-	char	_cHalf = 0x20;
-
-	if ((iTemp & 0x0002) >> 1)  _cHalf = 0x01;
+uint8_t fDisplayTemp(uint16_t iTemp, uint8_t ix, uint8_t iy) {
+	char    _arLCDline[3];      // array for lcd line formatting
 
 	sprintf(_arLCDline, "%02d%c",
 				(iTemp >> 2),
-				_cHalf);
+				((iTemp & 0x0002) >> 1) + 1);
 	lcd_gotoxy(ix, iy); lcd_puts(_arLCDline);
 
+	/*	sprintf(_arLCDline, "%02d",
+				(iTemp >> 2));
+	lcd_gotoxy(ix, iy); lcd_puts(_arLCDline);
+	lcd_gotoxy(ix + 2, iy); lcd_putc((iTemp & 0x0002) >> 1);
+	);
+*/
 	return 0;
 }
 
@@ -68,7 +71,10 @@ uint8_t fDisplayLoop(uint16_t iLoop, uint8_t ix, uint8_t iy) {
 }
 
 uint8_t fDisplayPeriod(uint8_t iPeriod, uint8_t ix, uint8_t iy) {
-	lcd_gotoxy(ix, iy); lcd_putc(0x30 + iPeriod);
+	char    _arLCDline[2];      // array for lcd line formatting
+	sprintf(_arLCDline, "%02d",
+			iPeriod);
+	lcd_gotoxy(ix, iy); lcd_puts(_arLCDline);
 	return 0;
 }
 
@@ -90,7 +96,10 @@ uint8_t fDisplayStatus(uint8_t iStatus, uint8_t ix, uint8_t iy) {
 	} else {
 		lcd_gotoxy(ix + 2, iy); lcd_putc(0x20);
 	}
-
 	return 0;
 }
 
+uint8_t fDisplayString(char *pDisplayString, uint8_t ix, uint8_t iy) {
+	lcd_gotoxy(ix, iy); lcd_puts(pDisplayString);
+	return 0;
+}

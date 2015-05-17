@@ -52,7 +52,7 @@ int main (void) {
 
     // Initial update of the display
     lcd_clrscr();
-    fDisplayPeriodLine(_iPeriod, 0);
+    fDisplayPeriodLine(_iPeriod, DISPLAY_LINE0);
 
     // run main program
     while (1) {
@@ -80,13 +80,18 @@ int main (void) {
 					if (!(_iStatus & STATUS_RUN)) {
 						if (_iPeriod < (MAX_PERIODS - 1)) {
 							_iPeriod++;
+						} else {
+							_iPeriod = 0;
 						}
+
 					}
 				}
 				if (iButton & BUTTON_ARROW_LEFT) {
 					if (!(_iStatus & STATUS_RUN)) {
 						if (_iPeriod > 0) {
 							_iPeriod--;
+						} else {
+							_iPeriod = MAX_PERIODS - 1;
 						}
 					}
 				}
@@ -157,8 +162,8 @@ int main (void) {
 		}
 
 		// update the display
-		fDisplayPeriodLine(_iPeriod, 0);
-		fDisplayActualLine(_iTemp, _iTime, _iStatus, 1);
+		fDisplayPeriodLine(_iPeriod, DISPLAY_LINE0);
+		fDisplayActualLine(_iTemp, _iTime, _iStatus, DISPLAY_LINE1);
 
 		// if pump status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_PUMP) {
