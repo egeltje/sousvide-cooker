@@ -234,7 +234,7 @@ uint8_t fConfigPeriods () {
 	while (!_iExit) {
 
 		lcd_clrscr();
-		fDisplayPeriod(_iPeriod, 0);
+		fDisplayPeriodLine(_iPeriod, 0);
 
 		switch (fConfigMenuChoice(_cMenu)) {
 		case 0:
@@ -332,97 +332,97 @@ uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
 		if (iButton != 0) {
 			if (iButton != _iButtonOld) {
 				if (iButton & BUTTON_ARROW_LEFT) {
-					if (_iCursorPos == 3) {      // 10    digit temp
-						_iCursorPos = 2;
+					if (_iCursorPos == 1) {      // 10    digit temp
+						_iCursorPos = 0;
 					}
-					if (_iCursorPos == 5) {      //  1    digit temp
+					if (_iCursorPos == 3) {      //  1    digit temp
+						_iCursorPos = 1;
+					}
+					if (_iCursorPos == 6) {      //   .25 digit temp
 						_iCursorPos = 3;
 					}
-					if (_iCursorPos == 8) {      //   .25 digit temp
-						_iCursorPos = 5;
+					if (_iCursorPos == 7) {     // 10    digit hour
+						_iCursorPos = 6;
 					}
-					if (_iCursorPos == 9) {     // 10    digit hour
-						_iCursorPos = 8;
+					if (_iCursorPos == 9) {     //  1    digit hour
+						_iCursorPos = 7;
 					}
-					if (_iCursorPos == 11) {     //  1    digit hour
+					if (_iCursorPos == 10) {     //   :10 digit minute
 						_iCursorPos = 9;
 					}
-					if (_iCursorPos == 12) {     //   :10 digit minute
-						_iCursorPos = 11;
-					}
 					if (_iCursorPos == 14) {     //   :01 digit minute
-						_iCursorPos = 12;
+						_iCursorPos = 10;
 					}
 				}
 				if (iButton & BUTTON_ARROW_RIGHT) {
 					if (_iCursorPos == 14) {
 						_iCursorPos = 15;
 					}
-					if (_iCursorPos == 12) {     //   :01 digit minute
+					if (_iCursorPos == 10) {     //   :01 digit minute
 						_iCursorPos = 14;
 					}
-					if (_iCursorPos == 11) {     //   :10 digit minute
-						_iCursorPos = 12;
+					if (_iCursorPos == 9) {     //   :10 digit minute
+						_iCursorPos = 10;
 					}
-					if (_iCursorPos == 9) {     //  1    digit hour
-						_iCursorPos = 11;
-					}
-					if (_iCursorPos == 8) {      // 10    digit hour
+					if (_iCursorPos == 7) {     //  1    digit hour
 						_iCursorPos = 9;
 					}
-					if (_iCursorPos == 5) {      //   .25 digit temp
-						_iCursorPos = 8;
+					if (_iCursorPos == 6) {      // 10    digit hour
+						_iCursorPos = 7;
 					}
-					if (_iCursorPos == 3) {      //  1    digit temp
-						_iCursorPos = 5;
+					if (_iCursorPos == 3) {      //   .25 digit temp
+						_iCursorPos = 6;
 					}
-					if (_iCursorPos == 2) {      // 10    digit temp
+					if (_iCursorPos == 1) {      //  1    digit temp
 						_iCursorPos = 3;
+					}
+					if (_iCursorPos == 0) {      // 10    digit temp
+						_iCursorPos = 1;
 					}
 				}
 				if (iButton & BUTTON_ARROW_DOWN) {
-					if (_iCursorPos == 2) {
+					if (_iCursorPos == 0) {
 						if (_iTemp >= 40) _iTemp -= 40;
 					}
-					if (_iCursorPos == 3) {
+					if (_iCursorPos == 1) {
 						if (_iTemp >= 4) _iTemp -= 4;
 					}
-					if (_iCursorPos == 5) {
+					if (_iCursorPos == 3) {
 						if (_iTemp >= 1) _iTemp -= 1;
 					}
-					if (_iCursorPos == 8) {
+					if (_iCursorPos == 6) {
 						if (_iTime >= 36001) _iTime -= 36000;
 					}
-					if (_iCursorPos == 9) {
+					if (_iCursorPos == 7) {
 						if (_iTime >= 3601) _iTime -= 3600;
 					}
-					if (_iCursorPos == 11) {
+					if (_iCursorPos == 9) {
 						if (_iTime >= 601) _iTime -= 600;
 					}
-					if (_iCursorPos == 12) {
+					if (_iCursorPos == 10) {
 						if (_iTime >= 61) _iTime -= 60;
 					}
 				}
 				if (iButton & BUTTON_ARROW_UP) {
-					if (_iCursorPos == 2) {
+					if (_iCursorPos == 0) {
 						if (_iTemp <= 359) _iTemp += 40;
 					}
-					if (_iCursorPos == 3) {
+					if (_iCursorPos == 1) {
 						if (_iTemp <= 395) _iTemp += 4;
 					}
-					if (_iCursorPos == 5) {
+					if (_iCursorPos == 3) {
 						if (_iTemp <= 398) _iTemp += 1;
 					}
-					if (_iCursorPos == 8) {
+					if (_iCursorPos == 6) {
 						if (_iTime <= 7200) _iTime += 36000;
 					}
-					if (_iCursorPos == 9) {
+					if (_iCursorPos == 7) {
 						if (_iTime <= 39600) _iTime += 3600;
 					}
-					if (_iCursorPos == 11) {
+					if (_iCursorPos == 9) {
 						if (_iTime <= 42600) _iTime += 600;
 					}
-					if (_iCursorPos == 12) {
+					if (_iCursorPos == 10) {
 						if (_iTime <= 42140) _iTime += 60;
 					}
 				}
@@ -435,9 +435,9 @@ uint8_t fConfigPeriodEdit(uint8_t iPeriod) {
 					} else {
 						lcd_gotoxy(15, 0); lcd_putc(0x20);
 					}
-				sprintf(_arLCDline, "  %02d.%02d %02d:%02d > ",
+				sprintf(_arLCDline, "%02d.%1d %02d:%02d   > ",
 					(_iTemp >> 2),
-					((_iTemp & 0x0003) * 25),
+					(((_iTemp & 0x0002) >> 1 ) * 5),
 					(_iTime/3600),
 					(_iTime/60) % 60);
 				lcd_gotoxy(0, 1); lcd_puts(_arLCDline);
@@ -535,12 +535,12 @@ uint8_t fConfigSetup (void) {
 
     // setup custom lcd characters
     static const uint8_t arCustomChar[64] PROGMEM = {
-        0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00,  // char0 (pump)
-    	0x00, 0x05, 0x09, 0x1f, 0x08, 0x04, 0x00, 0x00,  // char1 (loop)
-        0x02, 0x09, 0x00, 0x12, 0x09, 0x00, 0x12, 0x00,  // char2 (hedgehogR0)
-        0x11, 0x08, 0x03, 0x13, 0x08, 0x02, 0x03, 0x00,  // char3 (hedgehogR1)
-        0x00, 0x00, 0x10, 0x08, 0x04, 0x03, 0x03, 0x00,  // char4 (hedgehogR2)
-        0x00, 0x00, 0x01, 0x02, 0x04, 0x18, 0x18, 0x00,  // char5 (hedgehogL0)
+    	0x00, 0x05, 0x09, 0x1f, 0x08, 0x04, 0x00, 0x00,  // char0 (loop)
+       	0x11, 0x12, 0x14, 0x0e, 0x11, 0x02, 0x07, 0x00,  // char1 (1 / 2)
+    	0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00,  // char2 (pump)
+    	0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00,  // char3 (pump)
+    	0x00, 0x0f, 0x12, 0x1d, 0x11, 0x0e, 0x1f, 0x00,  // char4 (pump)
+    	0x00, 0x00, 0x01, 0x02, 0x04, 0x18, 0x18, 0x00,  // char5 (hedgehogL0)
         0x11, 0x02, 0x18, 0x19, 0x02, 0x08, 0x19, 0x00,  // char6 (hedgehogL1)
         0x08, 0x12, 0x00, 0x09, 0x12, 0x00, 0x09, 0x00   // char7 (hedgehogL2)
     };

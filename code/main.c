@@ -43,16 +43,16 @@ int main (void) {
 	uint16_t _iTime = 0;		// counting time in seconds
 	uint16_t _iTemp = 0;		// current temperature
 	uint16_t _iTempStart = 0;	// temperature at start of period
-	uint16_t _iTempD = 0;		// set temperature at given time
+	uint16_t _iTempCalc = 0;	// set temperature at given time
 	uint8_t  _iStatus = 0;		// storing system states
 	uint8_t  _iButtonOld = 0;	// storing previously pressed button
 
 	// setup registers
     fConfigSetup();
 
-        // Initial update of the display
+    // Initial update of the display
     lcd_clrscr();
-    fDisplayPeriod(_iPeriod, 0);
+    fDisplayPeriodLine(_iPeriod, 0);
 
     // run main program
     while (1) {
@@ -101,8 +101,11 @@ int main (void) {
 			_iTemp = ((iTempRead / 10) - stCalibration->offset) / stCalibration->coefficient;
 			if (_iTemp >= 400) _iTemp = 399;
 			iTempRead = 0;
+			_iTempCalc = stPeriods[_iPeriod].temp;
 
-			_iTempD = (((stPeriods[_iPeriod].temp - _iTempStart) / stPeriods[_iPeriod].time) * _iTime) + _iTempStart;
+			fDisplayTemp(_iTempCalc, 0, 0);
+
+//			_dTempTime = (((stPeriods[_iPeriod].temp - _iTempStart) / stPeriods[_iPeriod].time) * _iTime) + _iTempStart;
 		}
 		if (_iStatus & STATUS_RUN) {
 			OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
@@ -131,22 +134,19 @@ int main (void) {
 			_iStatus |= STATUS_PUMP;
 
 			// if temp is higher than set temp, switch off the heater, switch on cooler
-			if (_iTemp > stPeriods[_iPeriod].temp) {
+			if (_iTemp > _iTempCalc) {
 				_iStatus &= ~(STATUS_HEATER);
 				_iStatus |= STATUS_COOLER;
-				lcd_gotoxy(0, 1); lcd_putc(0x43);
 			}
 			// if temp is lower than set temp, switch on the heater, switch off cooler
-			if (_iTemp < stPeriods[_iPeriod].temp) {
+			if (_iTemp < _iTempCalc) {
 				_iStatus |= STATUS_HEATER;
 				_iStatus &= ~(STATUS_COOLER);
-				lcd_gotoxy(0, 1); lcd_putc(0x48);
 			}
 			// if temp is set temp, switch off the heater, switch off cooler
-			if (_iTemp == stPeriods[_iPeriod].temp) {
+			if (_iTemp == _iTempCalc) {
 				_iStatus &= ~(STATUS_HEATER);
 				_iStatus &= ~(STATUS_COOLER);
-				lcd_gotoxy(0, 1); lcd_putc(0x20);
 			}
 		} else {
 			OUT_PORT &= ~(OUT_LED_GREEN);    // turn off green led
@@ -154,12 +154,11 @@ int main (void) {
 			_iStatus &= ~(STATUS_PUMP);
 			_iStatus &= ~(STATUS_HEATER);
 			_iStatus &= ~(STATUS_COOLER);
-			lcd_gotoxy(0, 1); lcd_putc(0x20);
 		}
 
 		// update the display
-		fDisplayPeriod(_iPeriod, 0);
-		fDisplayActual(_iTemp, _iTime, 1);
+		fDisplayPeriodLine(_iPeriod, 0);
+		fDisplayActualLine(_iTemp, _iTime, _iStatus, 1);
 
 		// if pump status = 1, switch on the output else switch off
 		if (_iStatus & STATUS_PUMP) {
