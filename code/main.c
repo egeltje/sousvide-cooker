@@ -46,6 +46,7 @@ int main (void) {
 	uint16_t _iTempCalc = 0;	// set temperature at given time
 	uint8_t  _iStatus = 0;		// storing system states
 	uint8_t  _iButtonOld = 0;	// storing previously pressed button
+	float	 _dTempTemp = 0;
 
 	// setup registers
     fConfigSetup();
@@ -106,11 +107,10 @@ int main (void) {
 			_iTemp = ((iTempRead / 10) - stCalibration->offset) / stCalibration->coefficient;
 			if (_iTemp >= 400) _iTemp = 399;
 			iTempRead = 0;
-			_iTempCalc = stPeriods[_iPeriod].temp;
+			_dTempTemp = ( (float)stPeriods[_iPeriod].temp - (float)_iTempStart) / (float)stPeriods[_iPeriod].time;
+			_iTempCalc = (_dTempTemp * _iTime) + _iTempStart;
 
 			fDisplayTemp(_iTempCalc, 0, 0);
-
-//			_dTempTime = (((stPeriods[_iPeriod].temp - _iTempStart) / stPeriods[_iPeriod].time) * _iTime) + _iTempStart;
 		}
 		if (_iStatus & STATUS_RUN) {
 			OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
