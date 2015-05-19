@@ -532,10 +532,12 @@ uint8_t fConfigSetup (void) {
 
     sei();                              // enable interrupts
 
+    OUT_PORT |= OUT_LED_RED;	    // turn on red led
     lcd_gotoxy(0,0); lcd_puts(VERSION);
     lcd_gotoxy(0,1); lcd_puts(VENDOR);
 	while (iTick < 25) {};
     LCD_PORT |= 0x80;		            	// turn on background lighting
+    OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
 
     return 0;
 }

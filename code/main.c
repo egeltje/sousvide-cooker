@@ -46,7 +46,6 @@ int main (void) {
 	uint16_t _iTempCalc = 0;	// set temperature at given time
 	uint8_t  _iStatus = 0;		// storing system states
 	uint8_t  _iButtonOld = 0;	// storing previously pressed button
-	float	 _dTempTemp = 0;
 
 	// setup registers
     fConfigSetup();
@@ -104,16 +103,15 @@ int main (void) {
 
 			if (_iStatus & STATUS_RUN) _iTime++;
 
-			_iTemp = ((iTempRead / 10) - stCalibration->offset) / stCalibration->coefficient;
+			_iTemp = ( ((float)iTempRead / (float)10) - stCalibration->offset) / stCalibration->coefficient;
+			_iTemp = iTempRead / 10;
 			if (_iTemp >= 400) _iTemp = 399;
 			iTempRead = 0;
-			_dTempTemp = ( (float)stPeriods[_iPeriod].temp - (float)_iTempStart) / (float)stPeriods[_iPeriod].time;
-			_iTempCalc = (_dTempTemp * _iTime) + _iTempStart;
+			_iTempCalc = (( (float)stPeriods[_iPeriod].temp - (float)_iTempStart) / (float)stPeriods[_iPeriod].time * _iTime) + _iTempStart;
 
 			fDisplayTemp(_iTempCalc, 0, 0);
 		}
 		if (_iStatus & STATUS_RUN) {
-			OUT_PORT &= ~(OUT_LED_RED);	    // turn off red led
 			OUT_PORT |= OUT_LED_GREEN;	    // turn on green led
 
 			if (_iTime >= stPeriods[_iPeriod].time) {
@@ -155,7 +153,6 @@ int main (void) {
 			}
 		} else {
 			OUT_PORT &= ~(OUT_LED_GREEN);    // turn off green led
-			OUT_PORT |= OUT_LED_RED;         // turn on green led
 			_iStatus &= ~(STATUS_PUMP);
 			_iStatus &= ~(STATUS_HEATER);
 			_iStatus &= ~(STATUS_COOLER);
