@@ -58,20 +58,14 @@ int main (void) {
     while (1) {
 	    if (iButton != 0) {
 	    	if (iButton != _iButtonOld) {    // new button pressed
-				if (iButton & BUTTON_RUN) {
+				if (iButton & BUTTON_F1) {
 					if (_iStatus & STATUS_RUN) {
 						_iStatus &= ~(STATUS_RUN);
 					} else {
 						_iStatus |= STATUS_RUN;
 					}
 				}
-				if (iButton & BUTTON_RESET) {
-					if (!(_iStatus & STATUS_RUN)) {
-						_iTime = 0;
-						_iPeriod = 0;
-					}
-				}
-				if (iButton & BUTTON_CONFIG) {
+				if (iButton & BUTTON_F2) {
 					if (!(_iStatus & STATUS_RUN)) {
 						fConfig();
 					}
@@ -116,7 +110,7 @@ int main (void) {
 
 			if (_iTime >= stPeriods[_iPeriod].time) {
 				_iTime = 0;
-				_iTempStart = stPeriods[_iPeriod].temp;
+				_iTempStart = _iTemp;
 
 				if (stPeriods[_iPeriod].loop) {
 					_iPeriod = 0;
@@ -190,7 +184,6 @@ int main (void) {
  occurs when timer reaches TOP as set in OCR1A
  ****************************************************************************/
 ISR(TIMER1_COMPA_vect) {
-    KBD_PORT |= BUTTON_LED;         // switch back LED on
     iTick++;				        // add interrupt tick
     iButton = (KBD ^ 0x7f);         // read keyboard
     ADCSRA |= _BV(ADSC);            // start capture
@@ -202,5 +195,4 @@ ISR(TIMER1_COMPA_vect) {
  ****************************************************************************/
 ISR(ADC_vect) {
     iTempRead += ADC;
-    KBD_PORT &= ~(BUTTON_LED);      // switch back LED off
 }
