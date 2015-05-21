@@ -42,8 +42,8 @@
 #define BUTTON_F1           0x01    // pin B0
 #define BUTTON_F2           0x02    // pin B1
 #define BUTTON_ARROW_RIGHT  0x04    // pin B2
-#define BUTTON_ARROW_UP     0x08    // pin B3
-#define BUTTON_ARROW_DOWN   0x10    // pin B4
+#define BUTTON_ARROW_DOWN   0x08    // pin B3
+#define BUTTON_ARROW_UP     0x10    // pin B4
 #define BUTTON_ARROW_LEFT   0x20    // pin B5
 
 #define OUT_PORT            PORTC   // the output is attached to IO Port C
