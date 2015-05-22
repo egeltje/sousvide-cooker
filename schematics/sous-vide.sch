@@ -12294,12 +12294,12 @@ Low profile connectors, straight&lt;p&gt;
 </classes>
 <parts>
 <part name="SUPPLY2" library="supply2" deviceset="VCC" device=""/>
-<part name="R1" library="rcl" deviceset="R-EU_" device="0207/2V" value="10k"/>
+<part name="R1" library="rcl" deviceset="R-EU_" device="0207/7" value="10k"/>
 <part name="GND7" library="supply1" deviceset="GND" device=""/>
-<part name="R7" library="rcl" deviceset="R-EU_" device="0207/2V" value="180"/>
+<part name="R7" library="rcl" deviceset="R-EU_" device="0207/7" value="180"/>
 <part name="GND3" library="supply1" deviceset="GND" device=""/>
 <part name="R5" library="resistor" deviceset="R-TRIMM" device="3339P" value="10k"/>
-<part name="R6" library="rcl" deviceset="R-EU_" device="0207/2V" value="180"/>
+<part name="R6" library="rcl" deviceset="R-EU_" device="0207/7" value="180"/>
 <part name="SUPPLY3" library="supply2" deviceset="VCC" device=""/>
 <part name="GND5" library="supply1" deviceset="GND" device=""/>
 <part name="H1" library="holes" deviceset="MOUNT-HOLE" device="3.0"/>
@@ -12337,9 +12337,10 @@ Low profile connectors, straight&lt;p&gt;
 <part name="GND1" library="supply1" deviceset="GND" device=""/>
 <part name="C3" library="resistor" deviceset="C-EU" device="025-025X050" value="100n"/>
 <part name="Q1" library="crystal" deviceset="CRYSTAL" device="HC49U-V"/>
-<part name="C1" library="resistor" deviceset="C-EU" device="025-025X050" value="100n"/>
-<part name="C2" library="resistor" deviceset="C-EU" device="025-025X050" value="100n"/>
+<part name="C1" library="resistor" deviceset="C-EU" device="025-025X050" value="22p"/>
+<part name="C2" library="resistor" deviceset="C-EU" device="025-025X050" value="22p"/>
 <part name="GND6" library="supply1" deviceset="GND" device=""/>
+<part name="GND11" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -12350,7 +12351,7 @@ Low profile connectors, straight&lt;p&gt;
 <instance part="R1" gate="G$1" x="5.08" y="91.44"/>
 <instance part="GND7" gate="1" x="0" y="33.02"/>
 <instance part="R7" gate="G$1" x="86.36" y="73.66"/>
-<instance part="GND3" gate="1" x="152.4" y="76.2"/>
+<instance part="GND3" gate="1" x="152.4" y="73.66"/>
 <instance part="R5" gate="G$1" x="160.02" y="81.28"/>
 <instance part="R6" gate="G$1" x="198.12" y="81.28" rot="R90"/>
 <instance part="SUPPLY3" gate="G$1" x="162.56" y="73.66" rot="R180"/>
@@ -12393,6 +12394,7 @@ Low profile connectors, straight&lt;p&gt;
 <instance part="C1" gate="G$1" x="17.78" y="73.66" rot="R90"/>
 <instance part="C2" gate="G$1" x="17.78" y="68.58" rot="R90"/>
 <instance part="GND6" gate="1" x="15.24" y="66.04"/>
+<instance part="GND11" gate="1" x="180.34" y="73.66"/>
 </instances>
 <busses>
 </busses>
@@ -12488,7 +12490,7 @@ Low profile connectors, straight&lt;p&gt;
 </segment>
 <segment>
 <pinref part="GND3" gate="1" pin="GND"/>
-<wire x1="152.4" y1="78.74" x2="152.4" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="152.4" y1="76.2" x2="152.4" y2="86.36" width="0.1524" layer="91"/>
 <pinref part="R5" gate="G$1" pin="A"/>
 <wire x1="152.4" y1="86.36" x2="160.02" y2="86.36" width="0.1524" layer="91"/>
 <pinref part="LCD1" gate="G$1" pin="VSS"/>
@@ -12500,6 +12502,21 @@ Low profile connectors, straight&lt;p&gt;
 <pinref part="C1" gate="G$1" pin="1"/>
 <wire x1="15.24" y1="68.58" x2="15.24" y2="73.66" width="0.1524" layer="91"/>
 <junction x="15.24" y="68.58"/>
+</segment>
+<segment>
+<pinref part="LCD1" gate="G$1" pin="DB2"/>
+<pinref part="GND11" gate="1" pin="GND"/>
+<wire x1="180.34" y1="76.2" x2="180.34" y2="86.36" width="0.1524" layer="91"/>
+<pinref part="LCD1" gate="G$1" pin="DB3"/>
+<wire x1="182.88" y1="86.36" x2="182.88" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="182.88" y1="76.2" x2="180.34" y2="76.2" width="0.1524" layer="91"/>
+<pinref part="LCD1" gate="G$1" pin="DB1"/>
+<wire x1="177.8" y1="86.36" x2="177.8" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="177.8" y1="76.2" x2="180.34" y2="76.2" width="0.1524" layer="91"/>
+<pinref part="LCD1" gate="G$1" pin="DB0"/>
+<wire x1="175.26" y1="86.36" x2="175.26" y2="76.2" width="0.1524" layer="91"/>
+<wire x1="175.26" y1="76.2" x2="177.8" y2="76.2" width="0.1524" layer="91"/>
+<junction x="180.34" y="76.2"/>
 </segment>
 </net>
 <net name="VCC" class="0">
